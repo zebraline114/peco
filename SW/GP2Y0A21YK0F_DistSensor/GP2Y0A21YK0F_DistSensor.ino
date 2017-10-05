@@ -8,11 +8,16 @@ void setup() {
 void loop() {
   
   int iAIdistSensor = analogRead(iDistanceSensor);  //Read analog in Value
-  int iPercent = map(iAIdistSensor, 50, 400, 80, 10); //Convert Analog Value into percentage
-  Serial.print("Distance Reading: ");
+  float fVoltage = (float)iAIdistSensor * 0.0048828125f;
+//  int iPercent = map(iAIdistSensor, 0, 500, 80, 10); //Convert Analog Value into percentage
+//  Serial.print("Distance Reading: ");
+  Serial.print("Raw value ");
   Serial.print(iAIdistSensor);      //Print raw analog value
-  Serial.print(" Centimeters ");
-  Serial.print(iPercent);         //Print distance
-  Serial.println("cm");              //Print centimeter abbrev
+  Serial.print("    Voltage:  ");
+  Serial.print(fVoltage);
+  Serial.println("V");
+//  Serial.print(" Centimeters ");
+//  Serial.print(iPercent);         //Print distance
+//  Serial.println("cm");              //Print centimeter abbrev
   delay(1000);
 }
