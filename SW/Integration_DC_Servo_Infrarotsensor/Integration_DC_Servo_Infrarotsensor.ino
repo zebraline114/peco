@@ -35,6 +35,10 @@ Servo myServoMotor;
  */
 const int iDistanceSensor=0; //Distanzsensor ist an Analog IN Pin 0
 
+/**
+ * LED zur Anzeige wenn Töggeli erkannt wurde
+ */
+int Led = 7;
 
 /*
  * Alles was Einmalig im Setup ausgeführt wird
@@ -68,6 +72,10 @@ void setup() {
  */
    myServoMotor.attach(9);
 
+/*
+ * LED konfigurieren
+ */
+  pinMode(Led,OUTPUT);
 
 }
 
@@ -89,13 +97,21 @@ void loop() {
   while(i<=180){
       i++;
       myServoMotor.write(i);
-      measureDistance();
+      if (measureDistance() > 119){
+        digitalWrite(Led,HIGH);       
+      }else{
+        digitalWrite(Led,LOW); 
+      }
       delay(50);      
     }
   while(i>90){
       i--;
       myServoMotor.write(i);
-      measureDistance();
+      if (measureDistance() > 119){
+        digitalWrite(Led,HIGH);       
+      }else{
+        digitalWrite(Led,LOW); 
+      }
       delay(50);
     }
   
@@ -108,7 +124,7 @@ void loop() {
 /*
  * Funktion um Distanz von Distanzsensor auszulesen 
  */
-void measureDistance(){
+int measureDistance(){
   
     int iAIdistSensor = analogRead(iDistanceSensor);  //Read analog in Value
     float fVoltage = (float)iAIdistSensor * 0.0048828125f;
@@ -118,5 +134,6 @@ void measureDistance(){
     Serial.print(fVoltage);
     Serial.println("V");
     delay(20);
+    return iAIdistSensor;
    
   }
