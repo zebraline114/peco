@@ -8,9 +8,12 @@
 #include "utility/Adafruit_MS_PWMServoDriver.h"
 
 
+
+/*
+ * DC Motoren
+ */
 #define SPEED_MOTOR_RIGHT_SLOW 117
 #define SPEED_MOTOR_LEFT_SLOW 255
-
 
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
@@ -22,9 +25,21 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_DCMotor *myDCMotorLeft = AFMS.getMotor(1);  //Left motor is connected to port M1
 Adafruit_DCMotor *myDCMotorRight = AFMS.getMotor(2);   //Left motor is connected to port M2
 
+/*
+ *Servomotor 
+ */
 Servo myServoMotor;
 
+/*
+ * Distanzsensor
+ */
+const int iDistanceSensor=0; //Distanzsensor ist an Analog IN Pin 0
 
+
+/*
+ * Alles was Einmalig im Setup ausgeführt wird
+ */
+ 
 void setup() {
   Serial.begin(9600);           // set up Serial library at 9600 bps
   
@@ -74,11 +89,13 @@ void loop() {
   while(i<=180){
       i++;
       myServoMotor.write(i);
+      measureDistance();
       delay(50);      
     }
   while(i>90){
       i--;
       myServoMotor.write(i);
+      measureDistance();
       delay(50);
     }
   
@@ -86,3 +103,20 @@ void loop() {
 
 
 }
+
+
+/*
+ * Funktion um Distanz von Distanzsensor auszulesen 
+ */
+void measureDistance(){
+  
+    int iAIdistSensor = analogRead(iDistanceSensor);  //Read analog in Value
+    float fVoltage = (float)iAIdistSensor * 0.0048828125f;
+    Serial.print("Raw value ");
+    Serial.print(iAIdistSensor);      //Print raw analog value
+    Serial.print("    Voltage:  ");
+    Serial.print(fVoltage);
+    Serial.println("V");
+    delay(20);
+   
+  }
