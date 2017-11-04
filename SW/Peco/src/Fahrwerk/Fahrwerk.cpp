@@ -1,7 +1,5 @@
 #include "Fahrwerk.h"
-#include <Wire.h>
-#include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_MS_PWMServoDriver.h"
+
 
 
 #define SPEED_DELTA_FACTOR 
@@ -12,7 +10,7 @@ Fahrwerk::Fahrwerk(){
 	
 }
 
-Fahrwerk::init(Print &print){
+void Fahrwerk::init(Print &print){
 
 	printer = &print; //Object for printing on Serial
 	printer->println("Fahrwerk::init Anfang");

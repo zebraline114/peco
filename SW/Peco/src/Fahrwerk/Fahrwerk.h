@@ -4,13 +4,12 @@
 #include "Arduino.h"
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_MS_PWMServoDriver.h"
 
 class Fahrwerk
 {
   public:
 	Fahrwerk();
-    init(Print &print);
+    void init(Print &print);
     void fahrVorwaerts();
     void fahrRueckwaerts();
 	void stopp();
