@@ -9,10 +9,14 @@ void loop() {
   
   int iAIdistSensor = analogRead(iDistanceSensor);  //Read analog in Value
   float fVoltage = (float)iAIdistSensor * 0.0048828125f;
+  float fDistanceInCm = 16442*(pow((float)iAIdistSensor,-1.211));
   Serial.print("Raw value ");
   Serial.print(iAIdistSensor);      //Print raw analog value
   Serial.print("    Voltage:  ");
   Serial.print(fVoltage);
-  Serial.println("V");
-  delay(1000);
+  Serial.print("V");
+  Serial.print("    Distance:  ");
+  Serial.print(fDistanceInCm); 
+  Serial.println("cm");
+  delay(100);
 }
