@@ -34,7 +34,7 @@ void loop() {
     Serial.print(entfernung); 
     Serial.println(" cm"); 
   }
-  delay(10); 
+  delay(100); 
   
   
 }
