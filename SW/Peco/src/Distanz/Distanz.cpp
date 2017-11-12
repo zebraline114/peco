@@ -33,7 +33,7 @@ void Distanz::LedOnIfObjectDetected(int iLedOutputPin){
 	  while(i<=180){
       i++;
       myServoMotor.write(i);
-      if (measureDistance() > 119){
+      if (measureDistance() > 440){ //Wenn Objekt näher ca 10cm
         digitalWrite(iLedOutputPin,HIGH);       
       }else{
         digitalWrite(iLedOutputPin,LOW); 
@@ -43,7 +43,7 @@ void Distanz::LedOnIfObjectDetected(int iLedOutputPin){
   while(i>90){
       i--;
       myServoMotor.write(i);
-      if (measureDistance() > 119){
+      if (measureDistance() > 440){	//Wenn Objekt näher ca 10cm
         digitalWrite(iLedOutputPin,HIGH);       
       }else{
         digitalWrite(iLedOutputPin,LOW); 
