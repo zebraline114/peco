@@ -4,7 +4,7 @@
 
 #define SPEED_DELTA_FACTOR 
 #define SPEED_MOTOR_RIGHT_SLOW 255
-#define SPEED_MOTOR_LEFT_SLOW 117
+#define SPEED_MOTOR_LEFT_SLOW 255
 
 Fahrwerk::Fahrwerk(){
 	
@@ -21,8 +21,8 @@ void Fahrwerk::init(Print &print){
 
 
 	// Select which 'port' M1, M2, M3 or M4. 
-	myMotorRight = AFMS.getMotor(1);  //Left motor is connected to port M1
-	myMotorLeft = AFMS.getMotor(2);   //Left motor is connected to port M2
+	myMotorRight = AFMS.getMotor(3);  //Left motor is connected to port M3
+	myMotorLeft = AFMS.getMotor(4);   //Left motor is connected to port M4
 
 	AFMS.begin();  // create with the default frequency 1.6KHz
 	//AFMS.begin(1000);  // OR with a different frequency, say 1KHz
