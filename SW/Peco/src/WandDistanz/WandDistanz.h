@@ -8,7 +8,7 @@ class WandDistanz
   public:
 	WandDistanz();
     void init(Print &print, int p_iDistanceSensorInputPIN);
-	int WandDistanz::getAktuelleDistanzCm();
+	long WandDistanz::getAktuelleDistanzCm();
 
   private:
   	Print* printer;
