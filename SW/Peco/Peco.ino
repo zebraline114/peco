@@ -17,6 +17,7 @@
 
 static int iDoItOnlyOnce = 0; /*Temporäre Hilfsvariable für Entwicklunszwecke*/
 static enum pecoStates pecoState; /* Laufvariable für Statemachine */
+static long ClosestToeggeliIndex = 0;
 
 /*************************************
  * Objekte anlegen
@@ -59,7 +60,7 @@ void setup() {
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
   pecoState = SUCHE_TOEGGELI; /* Die Statemachine startet mit suchen */
-
+  //pecoState = FAHRE_ZU_TOEGGELI;
 
   
   
@@ -72,9 +73,7 @@ void setup() {
 void loop() {
 
 
-   long ClosestToeggeliIndex = 0; // Variable zum abspeichern der Messung mit dem nahestem Töggeli
-
-
+ // Variable zum abspeichern der Messung mit dem nahestem Töggeli
 
   switch(pecoState)
   {
@@ -101,16 +100,24 @@ void loop() {
 
       
     case FAHRE_ZU_TOEGGELI:
-        Serial.print("Statemachine State:   ");
-        Serial.println(pecoState);
-        /*myFahrwerk.fahrVorwaerts(); 
-        delay(1500); 
-        myFahrwerk.stopp();
-        delay(1500);
-        myFahrwerk.fahrRueckwaerts();
-        delay(1500);
-        myFahrwerk.stopp();
-        delay(1500);*/  
+        Serial.println("Statemachine State:   ");
+        Serial.print(pecoState);
+        Serial.print("ClosestToeggeliIndex: ");
+        Serial.print(ClosestToeggeliIndex);
+        Serial.print("Winkel: ");
+        Serial.print(DistanzMessung[0][ClosestToeggeliIndex]);
+
+       if (DistanzMessung[0][ClosestToeggeliIndex] > 45){
+          int iWinkel = (int)((int)DistanzMessung[0][ClosestToeggeliIndex] - 45);
+          myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, iWinkel); 
+          
+        } else{
+          int iWinkel = (int)(45 - (int)DistanzMessung[0][ClosestToeggeliIndex]);
+          myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, iWinkel);          
+          
+        }
+         mySuchServoMotor.write(45);
+        
         pecoState = ALLES_STOP;
       break;
       
