@@ -2,7 +2,7 @@
 #include "src/WandDistanz/WandDistanz.h"
 #include "src/ToeggeliDistanz/ToeggeliDistanz.h"
 #include <Servo.h>
-//#include "Peco.h"
+#include "Peco.h"
 
 /*****************************************
  * Input und Output PINS
@@ -10,18 +10,19 @@
 /*Analoge Input PINs*/
 #define WAND_DISTANZ_SENSOR 0 //Distanzsensor ist an Analog IN Pin 0
 
-/*Digitale Input PINs*/
+/*Digitale PINs*/
 #define TOEGGELI_DISTANZ_ECHO 2
 #define TOEGGELI_DISTANZ_TRIG 3
 #define SUCH_SERVO_OUTPUT_PIN 9
 
-static int iDoItOnlyOnce = 0;
+static int iDoItOnlyOnce = 0; /*Temporäre Hilfsvariable für Entwicklunszwecke*/
+static enum pecoStates pecoState; /* Laufvariable für Statemachine */
 
 /*************************************
  * Objekte anlegen
  ************************************/
 Fahrwerk myFahrwerk;
-Servo mySuchServoMotor;
+Servo mySuchServoMotor; /* Servomotor für's Suchen der Toeggel */
 WandDistanz myWandDistanz;
 ToeggeliDistanz myToeggeliDistanz;
 
@@ -31,6 +32,10 @@ long DistanzMessung[3][10]= {
       {0,  0,  0,  0,  0,  0,  0,  0,  0,  0},  /*Initialisierung Toeggeldistanz*/ 
       {0,  0,  0,  0,  0,  0,  0,  0,  0,  0}  /*Initialisierung Wanddistanz*/ 
     };
+
+
+
+    
 /************************
  * Setup    put your setup code here, to run once:
  ************************************/
@@ -50,64 +55,79 @@ void setup() {
   myWandDistanz.init(Serial, WAND_DISTANZ_SENSOR); //
   myToeggeliDistanz.init(Serial, TOEGGELI_DISTANZ_ECHO, TOEGGELI_DISTANZ_TRIG);
   mySuchServoMotor.attach(SUCH_SERVO_OUTPUT_PIN);
-  mySuchServoMotor.write(0);
-  delay (500); //Warten bis Servomotor auf Startposition 0 ist.
+  mySuchServoMotor.write(0); // SuchMotor sauber initialisiern, sonst ist Ausgansposition nicht klar
+  delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
+  pecoState = SUCHE_TOEGGELI; /* Die Statemachine startet mit suchen */
 
 
   
   
 }
+
+/***********************************************************************************************************
+ *  Was immer gemacht werden soll
+ */
 
 void loop() {
 
 
    long ClosestToeggeliIndex = 0; // Variable zum abspeichern der Messung mit dem nahestem Töggeli
 
-    /*myFahrwerk.fahrVorwaerts(); 
-    delay(1500); 
-    myFahrwerk.stopp();
-    delay(1500);
-    myFahrwerk.fahrRueckwaerts();
-    delay(1500);
-    myFahrwerk.stopp();
-    delay(1500);*/
 
-    
-   
-if (iDoItOnlyOnce <1){
 
-  iDoItOnlyOnce++;
+  switch(pecoState)
+  {
+    case SUCHE_TOEGGELI:     
+       /*Führe 10 Messungen für Töggeli und Wanddistanz durch und speichere sie im 2dim Array ab*/ 
+      for (int i=0; i<10; i++){
+          mySuchServoMotor.write((DistanzMessung[0][i])); /* Bringe den Servomotor in Position */
+          delay(100); /* Warte bis der Servomotor ruhig steht*/
+          DistanzMessung[1][i] = myToeggeliDistanz.getAktuelleDistanzCm(); /*Messwert vom Toeggelisensor ablegen*/
+          DistanzMessung[2][i] = myWandDistanz.getAktuelleDistanzCm(); /*Messwert vom Wandsensor ablegen*/
+          /*Näherer Töggel erkannt?*/
+          if(myToeggeliDistanz.getAktuelleDistanzCm() <=  DistanzMessung[1][ClosestToeggeliIndex]){    
+              ClosestToeggeliIndex = i; /* Merke Dir den den Index vom momentan nahesten Töggel */
+            } 
+        }
+        Serial.print("ClosestToeggeli   ");
+        Serial.println(DistanzMessung[1][ClosestToeggeliIndex]);
+        Serial.print("Statemachine State:   ");
+        Serial.println(pecoState);
         
-    for (int i=0; i<10; i++){
-
-        
-        mySuchServoMotor.write((DistanzMessung[0][i]));
-        delay(50);
-        DistanzMessung[1][i] = myToeggeliDistanz.getAktuelleDistanzCm(); /*Messwert vom Toeggelisensor ablegen*/
-        DistanzMessung[2][i] = myWandDistanz.getAktuelleDistanzCm(); /*Messwert vom Wandsensor ablegen*/
-        /*Näherer Töggel erkannt?*/
-        if(myToeggeliDistanz.getAktuelleDistanzCm() <=  DistanzMessung[1][ClosestToeggeliIndex]){
-            
-            ClosestToeggeliIndex = i;
-          }
-        
-        delay(50);
- 
-      
-      }
-      Serial.print("ClosestToeggeli   ");
-      Serial.println(DistanzMessung[1][ClosestToeggeliIndex]);
-
-       mySuchServoMotor.write((DistanzMessung[0][ClosestToeggeliIndex]));
-       
+        mySuchServoMotor.write((DistanzMessung[0][ClosestToeggeliIndex]));
+        pecoState = FAHRE_ZU_TOEGGELI; /* Suche beendet gehe zum nächsten State*/
+      break;
 
       
-}
+    case FAHRE_ZU_TOEGGELI:
+        Serial.print("Statemachine State:   ");
+        Serial.println(pecoState);
+        /*myFahrwerk.fahrVorwaerts(); 
+        delay(1500); 
+        myFahrwerk.stopp();
+        delay(1500);
+        myFahrwerk.fahrRueckwaerts();
+        delay(1500);
+        myFahrwerk.stopp();
+        delay(1500);*/  
+        pecoState = ALLES_STOP;
+      break;
+      
+    case ALLES_STOP:
+     if (iDoItOnlyOnce <1)
+     {
+        iDoItOnlyOnce++;
+        Serial.print("Statemachine State:   ");
+        Serial.println(pecoState);
+        myFahrwerk.stopp();
+     }      
+      break;      
+
+    default:
+      Serial.print("Statemachine State:   ");
+      Serial.println(pecoState);
+      myFahrwerk.stopp();
     
-    //myDistanz.LedOnIfObjectDetected(iLedOutputPIN);
-
-    
-
-
+  }       
 }
