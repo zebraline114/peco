@@ -39,6 +39,22 @@ void Fahrwerk::fahrVorwaerts(int p_iSpeed)
 	
 }
 
+void Fahrwerk::fahrVorwaerts(int p_iSpeed, int p_iDistanceInCm)
+{
+	Serial.println("Fahrwerk::fahrVorwaerts");
+	// the motors shall run forward
+		// Set the speed to start, from 0 (off) to 255 (max speed)
+	int iDelayTime = calcDistanceToDelay(p_iDistanceInCm);
+	myMotorRight->setSpeed(p_iSpeed);
+	myMotorLeft->setSpeed(p_iSpeed);
+	myMotorRight->run(FORWARD);
+	myMotorLeft->run(FORWARD);
+	delay(iDelayTime);
+	myMotorRight->run(RELEASE); // rechts Motor stoppen
+	myMotorLeft->run(RELEASE); // linken Motor stoppen	
+	
+}
+
 void Fahrwerk::fahrRueckwaerts(int p_iSpeed)
 {
 	Serial.println("Fahrwerk::fahrRueckwaerts");
@@ -68,12 +84,16 @@ void Fahrwerk::lenkeRechts(int p_iSpeed, int p_iGrad)
 	
 	int iDelayTime = calcWinkelToDelay(p_iGrad);
 
+	myMotorRight->run(RELEASE); // rechts Motor stoppen
 	myMotorLeft->run(RELEASE); // linken Motor stoppen
+	myMotorLeft->setSpeed(p_iSpeed);
 	myMotorRight->setSpeed(p_iSpeed);
 	
+	myMotorLeft->run(BACKWARD);
 	myMotorRight->run(FORWARD);
 	delay(iDelayTime);
-	myMotorRight->run(RELEASE);
+	myMotorRight->run(RELEASE); // rechts Motor stoppen
+	myMotorLeft->run(RELEASE); // linken Motor stoppen
 
 	
 }
@@ -86,18 +106,30 @@ void Fahrwerk::lenkeLinks(int p_iSpeed, int p_iGrad)
 	
 	int iDelayTime = calcWinkelToDelay(p_iGrad);
 	
-	myMotorRight->run(RELEASE); // linken Motor stoppen
+	myMotorRight->run(RELEASE); // rechts Motor stoppen
+	myMotorLeft->run(RELEASE); // linken Motor stoppen
 	myMotorLeft->setSpeed(p_iSpeed);
+	myMotorRight->setSpeed(p_iSpeed);
 	
 	myMotorLeft->run(FORWARD);
+	myMotorRight->run(BACKWARD);
 	delay(iDelayTime);
-	myMotorLeft->run(RELEASE);
+	myMotorRight->run(RELEASE); // rechts Motor stoppen
+	myMotorLeft->run(RELEASE); // linken Motor stoppen
 }
 
 int Fahrwerk::calcWinkelToDelay(int p_winkel)
 {
 	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
-	int iRetVal = (int)(p_winkel * 167);
+	int iRetVal = (int)(p_winkel * 98);
+	
+	return iRetVal;	
+}
+
+int Fahrwerk::calcDistanceToDelay(int p_iDistanceInCm)
+{
+	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
+	int iRetVal = (int)(p_iDistanceInCm * 410);
 	
 	return iRetVal;	
 }

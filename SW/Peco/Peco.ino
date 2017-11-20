@@ -60,7 +60,7 @@ void setup() {
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
   pecoState = SUCHE_TOEGGELI; /* Die Statemachine startet mit suchen */
-  //pecoState = FAHRE_ZU_TOEGGELI;
+ // pecoState = FAHRE_ZU_TOEGGELI;
 
   
   
@@ -99,7 +99,7 @@ void loop() {
       break;
 
       
-    case FAHRE_ZU_TOEGGELI:
+    case DREHE_ZU_TOEGGELI:
         Serial.println("Statemachine State:   ");
         Serial.print(pecoState);
         Serial.print("ClosestToeggeliIndex: ");
@@ -116,9 +116,20 @@ void loop() {
           myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, iWinkel);          
           
         }
-         mySuchServoMotor.write(45);
-        
-        pecoState = ALLES_STOP;
+        mySuchServoMotor.write(45); /*SuchServo geradeaus ausrichten*/      
+        pecoState = FAHRE_ZU_TOEGGELI;
+      break;
+      
+    case FAHRE_ZU_TOEGGELI:
+      {  
+        if (DistanzMessung[1][ClosestToeggeliIndex]>5){ /*Wenn Töggel mehr als 5cm weg ist*/
+          int iFahrDistanz = int (((int)DistanzMessung[1][ClosestToeggeliIndex]) - 5); // Fahre bis auf 5cm an Töggel heran
+          myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM,iFahrDistanz);
+        } else {
+          myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM,1); /*Sonst fahre nur 1cm*/
+        }
+      }
+      pecoState = ALLES_STOP;
       break;
       
     case ALLES_STOP:
