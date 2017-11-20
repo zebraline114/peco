@@ -95,7 +95,7 @@ void loop() {
         Serial.println(pecoState);
         
         mySuchServoMotor.write((DistanzMessung[0][ClosestToeggeliIndex]));
-        pecoState = FAHRE_ZU_TOEGGELI; /* Suche beendet gehe zum nächsten State*/
+        pecoState = DREHE_ZU_TOEGGELI; /* Suche beendet gehe zum nächsten State*/
       break;
 
       
