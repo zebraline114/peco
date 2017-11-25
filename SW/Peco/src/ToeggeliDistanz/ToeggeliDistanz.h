@@ -7,15 +7,15 @@ class ToeggeliDistanz
 {
   public:
 	ToeggeliDistanz();
-    void init(Print &print, int p_iEchoInputPIN, int p_iTrigOutputPIN);
-	long ToeggeliDistanz::getAktuelleDistanzCm();
+    void init(Print &print, unsigned int p_uiEchoInputPIN,  unsigned int p_uiTrigOutputPIN);
+	unsigned long ToeggeliDistanz::getAktuelleDistanzCm();
 
   private:
   	Print* printer;
-	int iEchoInputPIN;
-	int iTrigOutputPIN;
-	long lDauer;
-	long lEntfernung;
+	unsigned int uiEchoInputPIN;
+	unsigned int uiTrigOutputPIN;
+	unsigned long ulDauer;
+	unsigned long ulEntfernung;
 
 };
 
