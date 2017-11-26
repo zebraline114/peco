@@ -72,7 +72,8 @@ void setup() {
   
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
-  pecoState = SUCHE_TOEGGELI; /* Die Statemachine startet mit suchen */
+  pecoState = FAHRE_KREIS_1;
+  //pecoState = SUCHE_TOEGGELI; /* Die Statemachine startet mit suchen */
  //pecoState = FAHRE_ZU_TOEGGELI;
 
   
@@ -90,6 +91,43 @@ void loop() {
 
   switch(pecoState)
   {
+    case FAHRE_KREIS_1:
+      Serial.println("FAHRE_KREIS_1 START   ");
+      myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, 360);
+
+
+
+      myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, 10);
+      myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 90);
+      myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, 5);
+
+      for (int i=0; i<7; i++)
+      {
+        myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 52);
+        myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, 8);
+      }
+
+      myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, 10);
+
+     for (int i=0; i<7; i++)
+      {
+        myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 52);
+        myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, 20);
+      }
+
+
+
+      
+  
+      pecoState = ALLES_STOP;
+      iDoItOnlyOnce = 0;
+      Serial.println("FAHRE_KREIS_1 ENDE ");
+    break;
+    
+    
+    
+    
+    
     case SUCHE_TOEGGELI:     
        /*Führe 10 Messungen für Töggeli und Wanddistanz durch und speichere sie im 2dim Array ab*/ 
       for (int i=0; i<10; i++){

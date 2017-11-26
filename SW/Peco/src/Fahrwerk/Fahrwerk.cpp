@@ -27,26 +27,26 @@ void Fahrwerk::init(Print &print){
 	
 }
 
-void Fahrwerk::fahrVorwaerts(int p_iSpeed)
+void Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed)
 {
 	Serial.println("Fahrwerk::fahrVorwaerts");
 	// the motors shall run forward
 		// Set the speed to start, from 0 (off) to 255 (max speed)
-	myMotorRight->setSpeed(p_iSpeed);
-	myMotorLeft->setSpeed(p_iSpeed);
+	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorLeft->setSpeed(p_ulSpeed);
 	myMotorRight->run(FORWARD);
 	myMotorLeft->run(FORWARD);
 	
 }
 
-void Fahrwerk::fahrVorwaerts(int p_iSpeed, int p_iDistanceInCm)
+void Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm)
 {
 	Serial.println("Fahrwerk::fahrVorwaerts");
 	// the motors shall run forward
 		// Set the speed to start, from 0 (off) to 255 (max speed)
-	int iDelayTime = calcDistanceToDelay(p_iDistanceInCm);
-	myMotorRight->setSpeed(p_iSpeed);
-	myMotorLeft->setSpeed(p_iSpeed);
+	unsigned long iDelayTime = calcDistanceToDelay(p_ulDistanceInCm);
+	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorLeft->setSpeed(p_ulSpeed);
 	myMotorRight->run(FORWARD);
 	myMotorLeft->run(FORWARD);
 	delay(iDelayTime);
@@ -55,12 +55,12 @@ void Fahrwerk::fahrVorwaerts(int p_iSpeed, int p_iDistanceInCm)
 	
 }
 
-void Fahrwerk::fahrRueckwaerts(int p_iSpeed)
+void Fahrwerk::fahrRueckwaerts(unsigned long p_ulSpeed)
 {
 	Serial.println("Fahrwerk::fahrRueckwaerts");
 	// the motors shall run backward
-	myMotorRight->setSpeed(p_iSpeed);
-	myMotorLeft->setSpeed(p_iSpeed);
+	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorLeft->setSpeed(p_ulSpeed);
 	myMotorRight->run(BACKWARD);
 	myMotorLeft->run(BACKWARD);
 	
@@ -76,18 +76,18 @@ void Fahrwerk::stopp()
 	
 }
 
-void Fahrwerk::lenkeRechts(int p_iSpeed, int p_iGrad)
+void Fahrwerk::lenkeRechts(unsigned long p_ulSpeed, unsigned long p_ulGrad)
 {
 	Serial.println("Fahrwerk::lenkeRechts");
-	Serial.print(p_iGrad);
+	Serial.print(p_ulGrad);
 	Serial.print(" Grad");
 	
-	int iDelayTime = calcWinkelToDelay(p_iGrad);
+	unsigned long iDelayTime = calcWinkelToDelay(p_ulGrad);
 
 	myMotorRight->run(RELEASE); // rechts Motor stoppen
 	myMotorLeft->run(RELEASE); // linken Motor stoppen
-	myMotorLeft->setSpeed(p_iSpeed);
-	myMotorRight->setSpeed(p_iSpeed);
+	myMotorLeft->setSpeed(p_ulSpeed);
+	myMotorRight->setSpeed(p_ulSpeed);
 	
 	myMotorLeft->run(BACKWARD);
 	myMotorRight->run(FORWARD);
@@ -98,18 +98,18 @@ void Fahrwerk::lenkeRechts(int p_iSpeed, int p_iGrad)
 	
 }
 
-void Fahrwerk::lenkeLinks(int p_iSpeed, int p_iGrad)
+void Fahrwerk::lenkeLinks(unsigned long p_ulSpeed, unsigned long p_ulGrad)
 {
 	Serial.println("Fahrwerk::lenkeRechts");
-	Serial.print(p_iGrad);
+	Serial.print(p_ulGrad);
 	Serial.print(" Grad");
 	
-	int iDelayTime = calcWinkelToDelay(p_iGrad);
+	unsigned long iDelayTime = calcWinkelToDelay(p_ulGrad);
 	
 	myMotorRight->run(RELEASE); // rechts Motor stoppen
 	myMotorLeft->run(RELEASE); // linken Motor stoppen
-	myMotorLeft->setSpeed(p_iSpeed);
-	myMotorRight->setSpeed(p_iSpeed);
+	myMotorLeft->setSpeed(p_ulSpeed);
+	myMotorRight->setSpeed(p_ulSpeed);
 	
 	myMotorLeft->run(FORWARD);
 	myMotorRight->run(BACKWARD);
@@ -118,18 +118,20 @@ void Fahrwerk::lenkeLinks(int p_iSpeed, int p_iGrad)
 	myMotorLeft->run(RELEASE); // linken Motor stoppen
 }
 
-int Fahrwerk::calcWinkelToDelay(int p_winkel)
+unsigned long Fahrwerk::calcWinkelToDelay(unsigned long p_winkel)
 {
 	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
-	int iRetVal = (int)(p_winkel * 98);
+	unsigned long iRetVal = (unsigned long)(p_winkel * 98);
+	Serial.print("Fahrwerk::calcWinkelToDelay  Delay: ");
+	Serial.print(iRetVal);
 	
 	return iRetVal;	
 }
 
-int Fahrwerk::calcDistanceToDelay(int p_iDistanceInCm)
+unsigned long Fahrwerk::calcDistanceToDelay(unsigned long p_ulDistanceInCm)
 {
 	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
-	int iRetVal = (int)(p_iDistanceInCm * 410);
+	unsigned long iRetVal = (unsigned long)(p_ulDistanceInCm * 410);
 	
 	return iRetVal;	
 }

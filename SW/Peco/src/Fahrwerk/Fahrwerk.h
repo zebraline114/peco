@@ -17,11 +17,11 @@ class Fahrwerk
   public:
 	Fahrwerk();
     void init(Print &print);
-    void fahrVorwaerts(int p_iSpeed);
-    void fahrRueckwaerts(int p_iSpeed);
-	void lenkeRechts(int p_iSpeed, int p_iGrad);
-	void lenkeLinks(int p_iSpeed, int p_iGrad);
-	void fahrVorwaerts(int p_iSpeed, int p_iDistanceInCm);
+    void fahrVorwaerts(unsigned long p_ulSpeed);
+    void fahrRueckwaerts(unsigned long p_ulSpeed);
+	void lenkeRechts(unsigned long p_ulSpeed, unsigned long p_ulGrad);
+	void lenkeLinks(unsigned long p_ulSpeed, unsigned long p_ulGrad);
+	void fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm);
 	void stopp();
 
   private:
@@ -29,8 +29,8 @@ class Fahrwerk
 	Adafruit_MotorShield AFMS;
 	Adafruit_DCMotor *myMotorRight;
 	Adafruit_DCMotor *myMotorLeft;
-	int calcWinkelToDelay(int p_winkel);
-	int calcDistanceToDelay(int p_iDistanceInCm);
+	unsigned long calcWinkelToDelay(unsigned long p_winkel);
+	unsigned long calcDistanceToDelay(unsigned long p_ulDistanceInCm);
 
 };
 
