@@ -1,4 +1,5 @@
 #include "src/Fahrwerk/Fahrwerk.h"
+#include "src/Buerstenmotor/Buerstenmotor.h"
 #include "src/WandDistanz/WandDistanz.h"
 #include "src/ToeggeliDistanz/ToeggeliDistanz.h"
 #include <Servo.h>
@@ -27,11 +28,13 @@ static long ClosestWandIndex = 0;
  * Objekte anlegen
  ************************************/
 static Fahrwerk myFahrwerk;
+static Buerstenmotor myBuerstenmotor;
 static Servo mySuchServoMotor; /* Servomotor für's Suchen der Toeggel */
 static Servo mySortierServoMotor; /*Servomotor für die Sortierwippe*/
 static Servo myLadeklappeServoMotor; /*Servomotor für Ladeklappe*/
 static WandDistanz myWandDistanz;
 static ToeggeliDistanz myToeggeliDistanz;
+
 
 // Array mit 10 Reihen=Messungen und 10 Reihen : 1. Reihe Winkel (0°, 10°...90°), 2. Reihe Toeggeldistanz in cm, 3. Reihe Wanddistanz in cm, 
 unsigned long DistanzMessung[3][10]= {
@@ -61,6 +64,7 @@ void setup() {
      
   Serial.begin(9600);           // set up Serial library at 9600 bps
   myFahrwerk.init(Serial); // Muss aufgerufen um alle Objekte innerhalb vom Fahrwerkobjekt zu initialisieren (geht im Konstruktor nicht)  
+  myBuerstenmotor.init(Serial);
   myWandDistanz.init(Serial, WAND_DISTANZ_SENSOR); //
   myToeggeliDistanz.init(Serial, TOEGGELI_DISTANZ_ECHO, TOEGGELI_DISTANZ_TRIG);
   mySuchServoMotor.attach(SUCH_SERVO_OUTPUT_PIN);
@@ -72,7 +76,7 @@ void setup() {
   
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
-  pecoState = FAHRE_KREIS_1;
+  pecoState = STARTE_BUERSTEN;
   //pecoState = SUCHE_TOEGGELI; /* Die Statemachine startet mit suchen */
  //pecoState = FAHRE_ZU_TOEGGELI;
 
@@ -91,6 +95,16 @@ void loop() {
 
   switch(pecoState)
   {
+    case STARTE_BUERSTEN:
+      Serial.println("STARTE_BUERSTEN START   ");
+      myBuerstenmotor.fahrVorwaerts(SPEED_GANZLANGSAM);
+      
+      pecoState = FAHRE_KREIS_1;
+      Serial.println("STARTE_BUERSTEN START   ");
+      
+    break;
+    
+    
     case FAHRE_KREIS_1:
       Serial.println("FAHRE_KREIS_1 START   ");
       myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, 360);
@@ -202,6 +216,7 @@ void loop() {
         myToeggeliDistanz.getAktuelleDistanzCm(); /*Messwert vom Toeggelisensor*/
         myWandDistanz.getAktuelleDistanzCm(); /*Messwert vom Wandsensor */    
         myFahrwerk.stopp();
+        myBuerstenmotor.stopp();
      }
   
       break;      
