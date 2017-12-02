@@ -39,19 +39,17 @@ void Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed)
 	
 }
 
-void Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm)
+unsigned long Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm)
 {
 	Serial.println("Fahrwerk::fahrVorwaerts");
 	// the motors shall run forward
 		// Set the speed to start, from 0 (off) to 255 (max speed)
-	unsigned long iDelayTime = calcDistanceToDelay(p_ulDistanceInCm);
+	unsigned long lTimeInMs = calcDistanceToDelay(p_ulDistanceInCm);
 	myMotorRight->setSpeed(p_ulSpeed);
 	myMotorLeft->setSpeed(p_ulSpeed);
 	myMotorRight->run(FORWARD);
 	myMotorLeft->run(FORWARD);
-	delay(iDelayTime);
-	myMotorRight->run(RELEASE); // rechts Motor stoppen
-	myMotorLeft->run(RELEASE); // linken Motor stoppen	
+	return lTimeInMs;
 	
 }
 
@@ -76,13 +74,14 @@ void Fahrwerk::stopp()
 	
 }
 
-void Fahrwerk::lenkeRechts(unsigned long p_ulSpeed, unsigned long p_ulGrad)
+unsigned long  Fahrwerk::lenkeRechts(unsigned long p_ulSpeed, unsigned long p_ulGrad)
 {
 	Serial.println("Fahrwerk::lenkeRechts");
 	Serial.print(p_ulGrad);
 	Serial.print(" Grad");
 	
-	unsigned long iDelayTime = calcWinkelToDelay(p_ulGrad);
+	unsigned long lTimeInMs = calcWinkelToDelay(p_ulGrad);
+	
 
 	myMotorRight->run(RELEASE); // rechts Motor stoppen
 	myMotorLeft->run(RELEASE); // linken Motor stoppen
@@ -91,9 +90,8 @@ void Fahrwerk::lenkeRechts(unsigned long p_ulSpeed, unsigned long p_ulGrad)
 	
 	myMotorLeft->run(BACKWARD);
 	myMotorRight->run(FORWARD);
-	delay(iDelayTime);
-	myMotorRight->run(RELEASE); // rechts Motor stoppen
-	myMotorLeft->run(RELEASE); // linken Motor stoppen
+	
+	return lTimeInMs;
 
 	
 }
