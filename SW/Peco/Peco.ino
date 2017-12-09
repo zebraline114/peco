@@ -108,11 +108,18 @@ void loop() {
   {
     case STARTE_BUERSTEN:
       Serial.println("STARTE_BUERSTEN START   ");
-      myBuerstenmotor.fahrVorwaerts(SPEED_GANZLANGSAM);
+      myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+      mySuchServoMotor.write(30);
+      myLadeklappeServoMotor.write(0);
+      ulDriveTimeMs = myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, 360);
 
-      pecoState = FAHRE_KREIS_1;
+      //pecoState = FAHRE_KREIS_1;
       Serial.println("STARTE_BUERSTEN START   ");
-
+      delay(500);
+      mySuchServoMotor.write(0);
+      myLadeklappeServoMotor.write(30);      
+      delay(500);
+      
       break;
 
     case FAHRE_KREIS_1:
