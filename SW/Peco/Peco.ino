@@ -1,3 +1,4 @@
+#include "Arduino.h"
 #include "src/Fahrwerk/Fahrwerk.h"
 #include "src/Buerstenmotor/Buerstenmotor.h"
 #include "src/WandDistanz/WandDistanz.h"
