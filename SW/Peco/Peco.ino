@@ -3,6 +3,7 @@
 #include "src/WandDistanz/WandDistanz.h"
 #include "src/ToeggeliDistanz/ToeggeliDistanz.h"
 #include "src/Timer3/TimerThree.h"
+#include "src/Farbsensor/Farbsensor.h"
 #include <Servo.h>
 #include "Peco.h"
 
@@ -23,6 +24,7 @@
 static int iDoItOnlyOnce = 0; /*Temporäre Hilfsvariable für Entwicklunszwecke*/
 static enum pecoStates pecoState; /* Laufvariable für Statemachine */
 static unsigned long ulISRCounterInSec; /* Laufvariable für Schritte im Sammelvorgang */
+
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
 static boolean bDrivingActiveFlag = 0; /* Flag wird nach Timerzählzeit auf 1 gesetzt*/
@@ -37,6 +39,7 @@ static Servo mySortierServoMotor; /*Servomotor für die Sortierwippe*/
 static Servo myLadeklappeServoMotor; /*Servomotor für Ladeklappe*/
 static WandDistanz myWandDistanz;
 static ToeggeliDistanz myToeggeliDistanz;
+static Farbsensor myFarbsensor;
 
 
 // Array mit 10 Reihen=Messungen und 10 Reihen : 1. Reihe Winkel (0°, 10°...90°), 2. Reihe Toeggeldistanz in cm, 3. Reihe Wanddistanz in cm,
@@ -70,6 +73,7 @@ void setup() {
   Serial.begin(9600);           // set up Serial library at 9600 bps
   myFahrwerk.init(Serial); // Muss aufgerufen um alle Objekte innerhalb vom Fahrwerkobjekt zu initialisieren (geht im Konstruktor nicht)
   myBuerstenmotor.init(Serial);
+  myFarbsensor.init(Serial);
   myWandDistanz.init(Serial, WAND_DISTANZ_SENSOR); //
   myToeggeliDistanz.init(Serial, TOEGGELI_DISTANZ_ECHO, TOEGGELI_DISTANZ_TRIG);
   mySuchServoMotor.attach(SUCH_SERVO_OUTPUT_PIN);
@@ -196,4 +200,12 @@ void ISR_Timer3(){ /*Wird aufgerufen wenn Timer3 abgelaufen ist und zählt Laufv
     //digitalWrite(13, digitalRead(13) ^ 1); /*Temporär um zu sehen ob ISR ausgeführt wird*/
   
 
+}
+
+
+void sammelfahrtStatemachine(){
+
+  
+  
+  
 }
