@@ -71,6 +71,20 @@ unsigned long Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_u
 	
 }
 
+unsigned long Fahrwerk::fahrRueckwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm)
+{
+	Serial.println("Fahrwerk::fahrVorwaerts");
+	// the motors shall run forward
+		// Set the speed to start, from 0 (off) to 255 (max speed)
+	unsigned long lTimeInMs = calcDistanceToDelay(p_ulDistanceInCm);
+	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorLeft->setSpeed(p_ulSpeed);
+	myMotorRight->run(BACKWARD);
+	myMotorLeft->run(BACKWARD);
+	return lTimeInMs;
+	
+}
+
 void Fahrwerk::fahrRueckwaerts(unsigned long p_ulSpeed)
 {
 	Serial.println("Fahrwerk::fahrRueckwaerts");
@@ -82,11 +96,6 @@ void Fahrwerk::fahrRueckwaerts(unsigned long p_ulSpeed)
 	
 }
 
-unsigned long fahrRueckwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm){
-	/*ToDO*/
-	return 0;
-	
-}
 
 void Fahrwerk::stopp()
 {

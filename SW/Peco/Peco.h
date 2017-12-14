@@ -13,6 +13,7 @@ enum eRichtungen {
   VORWAERTS,
   RECHTS,
   LINKS,
-  RUECKWAERTS
+  RUECKWAERTS,
+  STOPP,
   };
 #endif

@@ -29,7 +29,6 @@ static unsigned long ulISRCounterInSec; /* Laufvariable für Zeit während Fahre
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
-static boolean bDrivingActiveFlag = 0; /* Flag wird nach Timerzählzeit auf 1 gesetzt*/
 
 /*************************************
 * Objekte anlegen
@@ -47,9 +46,9 @@ static Farbsensor myFarbsensor;
 
 
 
-static unsigned long ulDriveCollect[2][2]= {
-                                       {1, 2},
-                                       {5,  25}  
+static unsigned long ulDriveCollect[20][20]= {/**/
+                                       {VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, STOPP },
+                                       {10,          95,     6,         45,     12,         45,     12,       45,      12,       45,      12,       45,      12,       45,      12,       45,      12,       45,      6,       0}  
                                      };
 static unsigned int uiArrayIndexDriveCollect; /**/
 /**
@@ -199,7 +198,6 @@ unsigned int sammelfahrt(){
       case RECHTS:
           ulDriveTimeMs = myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, ulStreckeOderGrad);
           ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
-          bDrivingActiveFlag = 1;
           uiArrayIndexDriveCollect++;
           Serial.println(" RECHTS ");
           Serial.print(" sammelfahrt: ulISRCounterInSec = ");
@@ -209,17 +207,24 @@ unsigned int sammelfahrt(){
       case LINKS:
           ulDriveTimeMs = myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, ulStreckeOderGrad);
           ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
-          bDrivingActiveFlag = 1;
           uiArrayIndexDriveCollect++;
       break;
         
       case RUECKWAERTS:
-  /*ToDO*/
+          ulDriveTimeMs = myFahrwerk.fahrRueckwaerts(SPEED_GANZLANGSAM, ulStreckeOderGrad);
+          ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          Serial.println(" RUECKWAERTS ");
+          Serial.print(" sammelfahrt: ulISRCounterInSec = ");
+          Serial.println(ulISRCounterInSec);       
+          uiArrayIndexDriveCollect++;
       break;
+      
+      case STOPP:
+          myFahrwerk.stopp();
+          uiRetVal = 1; /*Fahren nicht aktiv*/
 
       default:
           myFahrwerk.stopp();
-          bDrivingActiveFlag = 0;
           uiRetVal = 1; /*Fahren nicht aktiv*/
       }
     
@@ -227,12 +232,11 @@ unsigned int sammelfahrt(){
     
     }else if((uiArrayIndexDriveCollect >= sizeof(ulDriveCollect))&& (ulISRCounterInSec == 0)){
           myFahrwerk.stopp();
-          bDrivingActiveFlag = 0;
           uiRetVal = 1; /*Fahren nicht aktiv*/
     }
   
     
-  return 0;
+  return uiRetVal;
   
   
 }
