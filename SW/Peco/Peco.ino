@@ -23,8 +23,9 @@
 #define LADEKLAPPE_SERVO_OUTPUT_PIN 10
 
 static int iDoItOnlyOnce = 0; /*Temporäre Hilfsvariable für Entwicklunszwecke*/
-static enum pecoStates pecoState; /* Laufvariable für Statemachine */
-static unsigned long ulISRCounterInSec; /* Laufvariable für Schritte im Sammelvorgang */
+static enum eMainStates mainState; /* Laufvariable für Statemachine */
+static enum eRichtungen richtung; /* Richtungen zum fahren */
+static unsigned long ulISRCounterInSec; /* Laufvariable für Zeit während Fahren */
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
@@ -43,13 +44,14 @@ static ToeggeliDistanz myToeggeliDistanz;
 static Farbsensor myFarbsensor;
 
 
-// Array mit 10 Reihen=Messungen und 10 Reihen : 1. Reihe Winkel (0°, 10°...90°), 2. Reihe Toeggeldistanz in cm, 3. Reihe Wanddistanz in cm,
-unsigned long DistanzMessung[3][10]= {
-                                       {0, 10, 20, 30, 40, 50, 60, 70, 80, 90}, /*Winkel in 10° Schritten*/
-                                       {0,  0,  0,  0,  0,  0,  0,  0,  0,  0},  /*Initialisierung Toeggeldistanz*/
-                                       {0,  0,  0,  0,  0,  0,  0,  0,  0,  0}  /*Initialisierung Wanddistanz*/
-                                     };
 
+
+
+static unsigned long ulDriveCollect[2][2]= {
+                                       {1, 2},
+                                       {5,  25}  
+                                     };
+static unsigned int uiArrayIndexDriveCollect; /**/
 /**
  * Funktionen
  */
@@ -86,11 +88,11 @@ void setup() {
 
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
-  pecoState = STARTE_BUERSTEN;
-  //pecoState = SUCHE_TOEGGELI; /* Die Statemachine startet mit suchen */
-  //pecoState = FAHRE_ZU_TOEGGELI;
+  mainState = INIT;
   ulISRCounterInSec = 0;
   pinMode(13, OUTPUT);
+
+  uiArrayIndexDriveCollect = 0; /*Array fuer Sammelfahrt initialisieren*/
 
   /*Interrupt Timer auf 1sec konigurieren   */
   Timer3.initialize(1000000);
@@ -105,89 +107,48 @@ void setup() {
 */
 
 void loop() {
-  unsigned long ulDriveTimeMs=0; /*Variable um Zeit für Timer zwischenzuspeichern*/
 
-  // Variable zum abspeichern der Messung mit dem nahestem Töggeli
 
-  switch(pecoState)
+
+  switch(mainState)
   {
-    case STARTE_BUERSTEN:
-      Serial.println("STARTE_BUERSTEN START   ");
+    case INIT:
+      Serial.println(" INIT: starte Buerstenmotor   SPEED_VOLLGAS");
       myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-      mySuchServoMotor.write(30);
-      myLadeklappeServoMotor.write(0);
-      ulDriveTimeMs = myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, 360);
+      //sammelfahrt();
+      mainState = DRIVE_AND_COLLECT;
+      break;
 
-      //pecoState = FAHRE_KREIS_1;
-      Serial.println("STARTE_BUERSTEN START   ");
-      delay(500);
-      mySuchServoMotor.write(0);
-      myLadeklappeServoMotor.write(30);      
-      delay(500);
+   case DRIVE_AND_COLLECT:
+      Serial.println(" DRIVE_AND_COLLECT ");
+      /*ToDo
+      
+      Hier RGB Daten auswerten und Servo ansteuern
+      */
+      
+      if(1 == sammelfahrt()){
+        mainState = UNLOAD_YELLOW;
+        }
       
       break;
 
-    case FAHRE_KREIS_1:
-  
-      if(bDrivingActiveFlag == 0){             
-          ulDriveTimeMs = myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, 360);
-          ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
-          bDrivingActiveFlag = 1;
-        }else if(ulISRCounterInSec==0){
-          myFahrwerk.stopp();
-          pecoState = FAHRE_KREIS_2;
-          bDrivingActiveFlag = 0;
-      }
-        Serial.println("ulISRCounterInSec:    ");
-        Serial.print(ulISRCounterInSec);
+   case UNLOAD_YELLOW:
+      Serial.println(" UNLOAD_YELLOW ");
       break;
       
-    case FAHRE_KREIS_2:
-  
-      if(bDrivingActiveFlag == 0){             
-          ulDriveTimeMs = myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, 10);
-          ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
-          bDrivingActiveFlag = 1;
-        }else if(ulISRCounterInSec==0){
-          myFahrwerk.stopp();
-          //pecoState = FAHRE_KREIS_3;
-          //bDrivingActiveFlag = 0;
-      }
-        Serial.println("ulISRCounterInSec:    ");
-        Serial.print(ulISRCounterInSec);
-      break; 
+   case UNLOAD_GREEN:
+      Serial.println(" UNLOAD_GREEN");
+      break;
+      
+   case END:
+      Serial.println(" END ");
+      break;   
+   default:
+      Serial.println(" default ");
+      myFahrwerk.stopp();
+       
 
-
-          /*myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, 360);
-
-
-
-          myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, 10);
-          myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 90);
-          myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, 5);
-
-          for (int i=0; i<7; i++)
-          {
-          myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 52);
-          myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, 8);
-          }
-
-          myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, 10);
-
-          for (int i=0; i<7; i++)
-          {
-          myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 52);
-          myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, 20);
-          }
-          }
-
-
-
-
-          */
-        //default
-          //myFahrwerk.stopp();
-
+ 
       }
 
 }
@@ -203,10 +164,75 @@ void ISR_Timer3(){ /*Wird aufgerufen wenn Timer3 abgelaufen ist und zählt Laufv
 
 }
 
+/*
+ * return Values:
+ * 0: fahrenAktiv
+ * 1: fahrtBeendet
+ */
+unsigned int sammelfahrt(){
+  unsigned long ulRichtung = 0;
+  unsigned long ulStreckeOderGrad = 0; 
+  unsigned long ulDriveTimeMs=0; /*Variable um Zeit für Timer zwischenzuspeichern*/
+  unsigned int uiRetVal = 0;
+  /*Wenn gerade nicht gefahren wird, */
+  if((uiArrayIndexDriveCollect < sizeof(ulDriveCollect))&& (ulISRCounterInSec == 0)){
+    ulRichtung = ulDriveCollect[0][uiArrayIndexDriveCollect];
+    ulStreckeOderGrad = ulDriveCollect[1][uiArrayIndexDriveCollect];
+    Serial.print(" ulRichtung =");
+    Serial.println(ulRichtung);    
+    Serial.print(" ulStreckeOderGrad =");
+    Serial.println(ulStreckeOderGrad);    
 
-void sammelfahrtStatemachine(){
 
+    
+    switch(ulRichtung){
+      case VORWAERTS:
+          ulDriveTimeMs = myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, ulStreckeOderGrad);
+          ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          Serial.println(" VORWAERTS ");
+          Serial.print(" sammelfahrt: ulISRCounterInSec = ");
+          Serial.println(ulISRCounterInSec);       
+          uiArrayIndexDriveCollect++;
+          
+      break;
+
+      case RECHTS:
+          ulDriveTimeMs = myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, ulStreckeOderGrad);
+          ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          bDrivingActiveFlag = 1;
+          uiArrayIndexDriveCollect++;
+          Serial.println(" RECHTS ");
+          Serial.print(" sammelfahrt: ulISRCounterInSec = ");
+          Serial.println(ulISRCounterInSec);   
+      break;
+            
+      case LINKS:
+          ulDriveTimeMs = myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, ulStreckeOderGrad);
+          ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          bDrivingActiveFlag = 1;
+          uiArrayIndexDriveCollect++;
+      break;
+        
+      case RUECKWAERTS:
+  /*ToDO*/
+      break;
+
+      default:
+          myFahrwerk.stopp();
+          bDrivingActiveFlag = 0;
+          uiRetVal = 1; /*Fahren nicht aktiv*/
+      }
+    
+    
+    
+    }else if((uiArrayIndexDriveCollect >= sizeof(ulDriveCollect))&& (ulISRCounterInSec == 0)){
+          myFahrwerk.stopp();
+          bDrivingActiveFlag = 0;
+          uiRetVal = 1; /*Fahren nicht aktiv*/
+    }
   
+    
+  return 0;
   
   
 }

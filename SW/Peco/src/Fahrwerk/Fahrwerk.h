@@ -20,8 +20,9 @@ class Fahrwerk
     void fahrVorwaerts(unsigned long p_ulSpeed);
     void fahrRueckwaerts(unsigned long p_ulSpeed);
 	unsigned long lenkeRechts(unsigned long p_ulSpeed, unsigned long p_ulGrad);
-	void lenkeLinks(unsigned long p_ulSpeed, unsigned long p_ulGrad);
+	unsigned long lenkeLinks(unsigned long p_ulSpeed, unsigned long p_ulGrad);
 	unsigned long fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm);
+	unsigned long fahrRueckwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm);
 	void stopp();
 
   private:

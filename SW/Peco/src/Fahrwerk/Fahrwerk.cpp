@@ -39,6 +39,24 @@ void Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed)
 	
 }
 
+unsigned long Fahrwerk::calcWinkelToDelay(unsigned long p_winkel)
+{
+	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
+	unsigned long iRetVal = (unsigned long)(p_winkel * 98);
+	Serial.print("Fahrwerk::calcWinkelToDelay  Delay: ");
+	Serial.print(iRetVal);
+	
+	return iRetVal;	
+}
+
+unsigned long Fahrwerk::calcDistanceToDelay(unsigned long p_ulDistanceInCm)
+{
+	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
+	unsigned long iRetVal = (unsigned long)(p_ulDistanceInCm * 410);
+	
+	return iRetVal;	
+}
+
 unsigned long Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm)
 {
 	Serial.println("Fahrwerk::fahrVorwaerts");
@@ -61,6 +79,12 @@ void Fahrwerk::fahrRueckwaerts(unsigned long p_ulSpeed)
 	myMotorLeft->setSpeed(p_ulSpeed);
 	myMotorRight->run(BACKWARD);
 	myMotorLeft->run(BACKWARD);
+	
+}
+
+unsigned long fahrRueckwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm){
+	/*ToDO*/
+	return 0;
 	
 }
 
@@ -96,13 +120,13 @@ unsigned long  Fahrwerk::lenkeRechts(unsigned long p_ulSpeed, unsigned long p_ul
 	
 }
 
-void Fahrwerk::lenkeLinks(unsigned long p_ulSpeed, unsigned long p_ulGrad)
+unsigned long Fahrwerk::lenkeLinks(unsigned long p_ulSpeed, unsigned long p_ulGrad)
 {
 	Serial.println("Fahrwerk::lenkeRechts");
 	Serial.print(p_ulGrad);
 	Serial.print(" Grad");
 	
-	unsigned long iDelayTime = calcWinkelToDelay(p_ulGrad);
+	unsigned long lTimeInMs = calcWinkelToDelay(p_ulGrad);
 	
 	myMotorRight->run(RELEASE); // rechts Motor stoppen
 	myMotorLeft->run(RELEASE); // linken Motor stoppen
@@ -111,25 +135,6 @@ void Fahrwerk::lenkeLinks(unsigned long p_ulSpeed, unsigned long p_ulGrad)
 	
 	myMotorLeft->run(FORWARD);
 	myMotorRight->run(BACKWARD);
-	delay(iDelayTime);
-	myMotorRight->run(RELEASE); // rechts Motor stoppen
-	myMotorLeft->run(RELEASE); // linken Motor stoppen
+	return lTimeInMs;
 }
 
-unsigned long Fahrwerk::calcWinkelToDelay(unsigned long p_winkel)
-{
-	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
-	unsigned long iRetVal = (unsigned long)(p_winkel * 98);
-	Serial.print("Fahrwerk::calcWinkelToDelay  Delay: ");
-	Serial.print(iRetVal);
-	
-	return iRetVal;	
-}
-
-unsigned long Fahrwerk::calcDistanceToDelay(unsigned long p_ulDistanceInCm)
-{
-	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
-	unsigned long iRetVal = (unsigned long)(p_ulDistanceInCm * 410);
-	
-	return iRetVal;	
-}
