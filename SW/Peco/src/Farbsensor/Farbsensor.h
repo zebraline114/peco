@@ -11,7 +11,7 @@ class Farbsensor
   public:
 	Farbsensor();
     void init(Print &print);
-	unsigned int getColor(void);
+	unsigned int getColor(unsigned long* p_ulISRcolorMeasureCounterInSec);
 	
   private:
 	Print* printer;

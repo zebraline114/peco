@@ -30,20 +30,22 @@ void Farbsensor::init(Print &print){
 	
 }
 
-unsigned int Farbsensor::getColor(void){
+unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSec){
 	
 	unsigned int uiColor = 0; //Platzhalter
 	unsigned int uiRetVal = 0;
 	
 	uint16_t clear, red, green, blue;						//Variablen für neue Messung zurücksetzten.
 
-	tcs.setInterrupt(false);      //  LED einschalten
+	//tcs.setInterrupt(false);      //  LED einschalten
 
-	delay(60);  // Der Farbsensor braucht 50ms zu Verarbeitung
-  
-	tcs.getRawData(&red, &green, &blue, &clear);		//Daten vom Sensor in Variablen schreiben.
-
-	tcs.setInterrupt(true);  // LED ausschalten
+	//delay(60);  // Der Farbsensor braucht 50ms zu Verarbeitung
+	if (*p_pulISRcolorMeasureCounterInSec == 0){ //Timing jetzt so, dass jede Sekunde (via Interrupt gesteuert) Daten geholt werden
+		tcs.getRawData(&red, &green, &blue, &clear);		//Daten vom Sensor in Variablen schreiben.
+		*p_pulISRcolorMeasureCounterInSec = 1; // Timer wieder auf 1Sekunde aufziehen
+		
+	}
+	//tcs.setInterrupt(true);  // LED ausschalten
   
 	printer->print("C:\t"); printer->print(clear);			//Ausgabe der gemessenen Farbwerte
 	printer->print("\tR:\t"); printer->print(red);

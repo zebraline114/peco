@@ -25,7 +25,8 @@
 static int iDoItOnlyOnce = 0; /*Temporäre Hilfsvariable für Entwicklunszwecke*/
 static enum eMainStates mainState; /* Laufvariable für Statemachine */
 static enum eRichtungen richtung; /* Richtungen zum fahren */
-static unsigned long ulISRCounterInSec; /* Laufvariable für Zeit während Fahren */
+static unsigned long ulISRDriveCounterInSec; /* Laufvariable für Zeit während Fahren */
+static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
@@ -88,7 +89,7 @@ void setup() {
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
   mainState = INIT;
-  ulISRCounterInSec = 0;
+  ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
   uiArrayIndexDriveCollect = 0; /*Array fuer Sammelfahrt initialisieren*/
@@ -124,10 +125,22 @@ void loop() {
       
       Hier RGB Daten auswerten und Servo ansteuern
       */
-      Serial.println(" myFabsensor.getColor : ");
-      uiColor = myFarbsensor.getColor();
-      Serial.println(uiColor);
-      
+      Serial.println(" myFabsensor.getColor : "); Serial.print(uiColor);
+      uiColor = myFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
+      switch(uiColor){
+        case 0:
+          // Wenn kein Toeggel erkannt wurde, lass alles so wie es ist
+          break;
+        case 1:
+          mySortierServoMotor.write(0); // Wenn gruener Toeggel erkannt wurde, stelle Servomotor auf 0°
+          break;
+        case 2:
+          mySortierServoMotor.write(25); // Wenn gelber Toeggel erkannt wurde, stelle Servomotor auf 25°
+          break;
+       // default:
+          // lass alles so wie es ist
+        
+        }
       
       
       if(1 == sammelfahrt()){
@@ -160,9 +173,12 @@ void loop() {
 void ISR_Timer3(){ /*Wird aufgerufen wenn Timer3 abgelaufen ist und zählt Laufvariable von State 1 hoch*/
 
     //Serial.println("ISR_Timer3 aufgerufen");
-    if(ulISRCounterInSec>0){
-      ulISRCounterInSec--;
+    if(ulISRDriveCounterInSec>0){
+      ulISRDriveCounterInSec--;
     }
+    if(ulISRcolorMeasureCounterInSec){
+      ulISRcolorMeasureCounterInSec--;
+      }
     //digitalWrite(13, digitalRead(13) ^ 1); /*Temporär um zu sehen ob ISR ausgeführt wird*/
   
 
@@ -179,7 +195,7 @@ unsigned int sammelfahrt(){
   unsigned long ulDriveTimeMs=0; /*Variable um Zeit für Timer zwischenzuspeichern*/
   unsigned int uiRetVal = 0;
   /*Wenn gerade nicht gefahren wird, */
-  if((uiArrayIndexDriveCollect < sizeof(ulDriveCollect))&& (ulISRCounterInSec == 0)){
+  if((uiArrayIndexDriveCollect < sizeof(ulDriveCollect))&& (ulISRDriveCounterInSec == 0)){
     ulRichtung = ulDriveCollect[0][uiArrayIndexDriveCollect];
     ulStreckeOderGrad = ulDriveCollect[1][uiArrayIndexDriveCollect];
     Serial.print(" ulRichtung =");
@@ -192,35 +208,35 @@ unsigned int sammelfahrt(){
     switch(ulRichtung){
       case VORWAERTS:
           ulDriveTimeMs = myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, ulStreckeOderGrad);
-          ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          ulISRDriveCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
           Serial.println(" VORWAERTS ");
-          Serial.print(" sammelfahrt: ulISRCounterInSec = ");
-          Serial.println(ulISRCounterInSec);       
+          Serial.print(" sammelfahrt: ulISRDriveCounterInSec = ");
+          Serial.println(ulISRDriveCounterInSec);       
           uiArrayIndexDriveCollect++;
           
       break;
 
       case RECHTS:
           ulDriveTimeMs = myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, ulStreckeOderGrad);
-          ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          ulISRDriveCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
           uiArrayIndexDriveCollect++;
           Serial.println(" RECHTS ");
-          Serial.print(" sammelfahrt: ulISRCounterInSec = ");
-          Serial.println(ulISRCounterInSec);   
+          Serial.print(" sammelfahrt: ulISRDriveCounterInSec = ");
+          Serial.println(ulISRDriveCounterInSec);   
       break;
             
       case LINKS:
           ulDriveTimeMs = myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, ulStreckeOderGrad);
-          ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          ulISRDriveCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
           uiArrayIndexDriveCollect++;
       break;
         
       case RUECKWAERTS:
           ulDriveTimeMs = myFahrwerk.fahrRueckwaerts(SPEED_GANZLANGSAM, ulStreckeOderGrad);
-          ulISRCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          ulISRDriveCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
           Serial.println(" RUECKWAERTS ");
-          Serial.print(" sammelfahrt: ulISRCounterInSec = ");
-          Serial.println(ulISRCounterInSec);       
+          Serial.print(" sammelfahrt: ulISRDriveCounterInSec = ");
+          Serial.println(ulISRDriveCounterInSec);       
           uiArrayIndexDriveCollect++;
       break;
       
@@ -235,7 +251,7 @@ unsigned int sammelfahrt(){
     
     
     
-    }else if((uiArrayIndexDriveCollect >= sizeof(ulDriveCollect))&& (ulISRCounterInSec == 0)){
+    }else if((uiArrayIndexDriveCollect >= sizeof(ulDriveCollect))&& (ulISRDriveCounterInSec == 0)){
           myFahrwerk.stopp();
           uiRetVal = 1; /*Fahren nicht aktiv*/
     }
