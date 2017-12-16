@@ -12,16 +12,16 @@ void Farbsensor::init(Print &print){
 	printer = &print; //Object for printing on Serial
 	printer->println("Farbsensor::init Anfang");
 	
-	//Marc Anfang
+
+	printer->println("Farbsensor test!");
 	
-	Serial.begin(9600);											//Serielle Schnittstelle starten
-	Serial.println("Farbsensor test!");
+	tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);     // Farbsensor Basiswerte definieren.
 
 	if (tcs.begin()) {											//Farbsensor ansprechen
-    Serial.println("Sensor gefunden");
+    printer->println("Sensor gefunden");
 	} 
 	else {
-    Serial.println("Farbsensor nicht erkannt, Verbindung überprüfen");		//Programmunterbruch bis der Sensor gefunde ist.
+    printer->println("Farbsensor nicht erkannt, Verbindung überprüfen");		//Programmunterbruch bis der Sensor gefunde ist.
     while (1); 
 	}
   
@@ -35,8 +35,6 @@ unsigned int Farbsensor::getColor(void){
 	unsigned int uiColor = 0; //Platzhalter
 	unsigned int uiRetVal = 0;
 	
-	//Marc Anfang
-	
 	uint16_t clear, red, green, blue;						//Variablen für neue Messung zurücksetzten.
 
 	tcs.setInterrupt(false);      //  LED einschalten
@@ -47,10 +45,10 @@ unsigned int Farbsensor::getColor(void){
 
 	tcs.setInterrupt(true);  // LED ausschalten
   
-	Serial.print("C:\t"); Serial.print(clear);			//Ausgabe der gemessenen Farbwerte
-	Serial.print("\tR:\t"); Serial.print(red);
-	Serial.print("\tG:\t"); Serial.print(green);
-	Serial.print("\tB:\t"); Serial.print(blue);
+	printer->print("C:\t"); printer->print(clear);			//Ausgabe der gemessenen Farbwerte
+	printer->print("\tR:\t"); printer->print(red);
+	printer->print("\tG:\t"); printer->print(green);
+	printer->print("\tB:\t"); printer->print(blue);
 
 	// Figure out some basic hex code for visualization
 	uint32_t sum = clear;
@@ -59,9 +57,9 @@ unsigned int Farbsensor::getColor(void){
 	g = green; g /= sum;
 	b = blue; b /= sum;
 	r *= 256; g *= 256; b *= 256;
-	Serial.print("\t");
-	Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
-	Serial.println();
+	printer->print("\t");
+	printer->print((int)r, HEX); printer->print((int)g, HEX); printer->print((int)b, HEX);
+	printer->println();
 	
 	/* Zur unterscheidung der Farben habe ich den Clear Wert verwendet, weil die Ergebnisse sehr leicht zu 
 	   unterscheiden sind. Ohne Töggle war der Wert um die 70-200 je nach Lichtverhältnisse. Mit dem grünen Töggel
@@ -77,11 +75,9 @@ unsigned int Farbsensor::getColor(void){
 	}
 	if (clear > 3000) {						// Gelb
 	uiColor = 2;	
-	}
+	} 
 	
-	
-	//Marc Ende
-	
+		
 	if (uiColor == 0) /* keine Farbe erkannt*/{
 		uiRetVal = 0;
 	} else if (uiColor	 == 1) /* gruen Farbe erkannt*/{

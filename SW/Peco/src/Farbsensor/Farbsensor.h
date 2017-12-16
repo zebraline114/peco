@@ -15,6 +15,8 @@ class Farbsensor
 	
   private:
 	Print* printer;
+	Adafruit_TCS34725 tcs;
+	byte gammatable[256];
 
 
 };

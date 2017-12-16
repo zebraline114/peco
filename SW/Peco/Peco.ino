@@ -106,7 +106,7 @@ void setup() {
 */
 
 void loop() {
-
+  unsigned int uiColor = 0;
 
 
   switch(mainState)
@@ -124,6 +124,11 @@ void loop() {
       
       Hier RGB Daten auswerten und Servo ansteuern
       */
+      Serial.println(" myFabsensor.getColor : ");
+      uiColor = myFarbsensor.getColor();
+      Serial.println(uiColor);
+      
+      
       
       if(1 == sammelfahrt()){
         mainState = UNLOAD_YELLOW;
