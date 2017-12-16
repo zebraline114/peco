@@ -2,6 +2,8 @@
 #define Farbsensor_h
 
 #include "Arduino.h" /*Wird für Printerobjekt benötigt*/
+#include <Wire.h>
+#include "Adafruit_TCS34725.h"
 
 
 class Farbsensor
