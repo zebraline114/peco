@@ -47,15 +47,15 @@ static Farbsensor myFarbsensor;
 
 
 
-static unsigned long ulArrayDriveCollect[20][20]= {/**/
+static uint8_t ulArrayDriveCollect[20][20]= {/**/
                                        {VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, STOPP },
                                        {10,          95,     6,         45,     12,         45,     12,       45,      12,       45,      12,       45,      12,       45,      12,       45,      12,       45,      6,       0}  
                                      };
-static unsigned long ulArrayUnloadYellow[20][20]= {/**/
+static uint8_t ulArrayUnloadYellow[20][20]= {/**/
                                        {RECHTS, RUECKWAERTS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                        {55,          18,     0,         0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
                                      };
-static unsigned long ulArrayUnloadGreen[20][20]= {/**/
+static uint8_t ulArrayUnloadGreen[20][20]= {/**/
                                        {LINKS, VORWAERTS, LINKS, RUECKWAERTS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                        {10,          70,     140,         18,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
                                      };                                     
@@ -199,7 +199,7 @@ static unsigned int uiSekundencounter = 0;
  * 0: fahrenAktiv
  * 1: fahrtBeendet
  */
-unsigned int fahreAblauf(unsigned long p_arrayFahrablauf[][20]){
+unsigned int fahreAblauf(uint8_t p_arrayFahrablauf[][20]){
   
   static unsigned int uiIndexOfp_arrayFahrablauf = 0; /**/
   unsigned long ulRichtung = 0;
