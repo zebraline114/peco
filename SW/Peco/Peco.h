@@ -10,10 +10,10 @@ enum eMainStates {
   };
 
 enum eRichtungen {
+  STOPP,
   VORWAERTS,
   RECHTS,
   LINKS,
-  RUECKWAERTS,
-  STOPP,
+  RUECKWAERTS
   };
 #endif

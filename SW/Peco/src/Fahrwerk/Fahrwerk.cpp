@@ -73,7 +73,7 @@ unsigned long Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_u
 
 unsigned long Fahrwerk::fahrRueckwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm)
 {
-	Serial.println("Fahrwerk::fahrVorwaerts");
+	Serial.println("Fahrwerk::fahrRueckwaerts");
 	// the motors shall run forward
 		// Set the speed to start, from 0 (off) to 255 (max speed)
 	unsigned long lTimeInMs = calcDistanceToDelay(p_ulDistanceInCm);

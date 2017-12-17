@@ -51,7 +51,10 @@ static unsigned long ulArrayDriveCollect[20][20]= {/**/
                                        {VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, STOPP },
                                        {10,          95,     6,         45,     12,         45,     12,       45,      12,       45,      12,       45,      12,       45,      12,       45,      12,       45,      6,       0}  
                                      };
-
+static unsigned long ulArrayUnloadYellow[20][20]= {/**/
+                                       {RECHTS, RUECKWAERTS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                                       {55,          18,     0,         0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
+                                     };
 /**
  * Funktionen
  */
@@ -124,7 +127,7 @@ void loop() {
       */
 
       uiColor = myFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
-       Serial.print(" myFabsensor.getColor : "); Serial.println(uiColor);
+      Serial.print(" myFabsensor.getColor : "); Serial.println(uiColor);
       switch(uiColor){
         case 0:
           // Wenn kein Toeggel erkannt wurde, lass alles so wie es ist
@@ -149,14 +152,19 @@ void loop() {
 
    case UNLOAD_YELLOW:
       Serial.println(" UNLOAD_YELLOW ");
+      if(1 == fahreAblauf(ulArrayUnloadYellow)){
+        mainState = UNLOAD_GREEN;
+      }
       break;
       
    case UNLOAD_GREEN:
       Serial.println(" UNLOAD_GREEN");
+      mainState = END;
       break;
       
    case END:
       Serial.println(" END ");
+      myBuerstenmotor.stopp();
       break;   
    default:
       Serial.println(" default ");
@@ -202,18 +210,20 @@ unsigned int fahreAblauf(unsigned long p_arrayFahrablauf[][20]){
   unsigned long ulRichtung = 0;
   unsigned long ulStreckeOderGrad = 0; 
   unsigned long ulDriveTimeMs=0; /*Variable um Zeit für Timer zwischenzuspeichern*/
-  unsigned int uiRetVal = 0;
+  unsigned int uiRetVal;
+  uiRetVal = 0;
   /*Wenn gerade nicht gefahren wird, */
   unsigned int uiLengthOfp_arrayFahrablauf = 0;
+  
   uiLengthOfp_arrayFahrablauf = sizeof(p_arrayFahrablauf[0]) / sizeof(p_arrayFahrablauf[0][0]);
   Serial.print(" uiLengthOfp_arrayFahrablauf =");Serial.println(uiLengthOfp_arrayFahrablauf); 
+  
   if((uiIndexOfp_arrayFahrablauf < uiLengthOfp_arrayFahrablauf)&& (ulISRDriveCounterInSec == 0)){
     ulRichtung = p_arrayFahrablauf[0][uiIndexOfp_arrayFahrablauf];
-    ulStreckeOderGrad = p_arrayFahrablauf[1][uiIndexOfp_arrayFahrablauf];
-    Serial.print(" ulRichtung =");
-    Serial.println(ulRichtung);    
-    Serial.print(" ulStreckeOderGrad =");
-    Serial.println(ulStreckeOderGrad);    
+    ulStreckeOderGrad = p_arrayFahrablauf[1][uiIndexOfp_arrayFahrablauf];  
+    Serial.print(" uiIndexOfp_arrayFahrablauf ="); Serial.println(uiIndexOfp_arrayFahrablauf); 
+    Serial.print(" ulRichtung ="); Serial.println(ulRichtung);    
+    Serial.print(" ulStreckeOderGrad ="); Serial.println(ulStreckeOderGrad);    
 
 
     
@@ -254,10 +264,12 @@ unsigned int fahreAblauf(unsigned long p_arrayFahrablauf[][20]){
       
       case STOPP:
           myFahrwerk.stopp();
+          uiIndexOfp_arrayFahrablauf = 0;
           uiRetVal = 1; /*Fahren nicht aktiv*/
 
       default:
           myFahrwerk.stopp();
+          uiIndexOfp_arrayFahrablauf = 0;
           uiRetVal = 1; /*Fahren nicht aktiv*/
       }
     
@@ -265,6 +277,8 @@ unsigned int fahreAblauf(unsigned long p_arrayFahrablauf[][20]){
     
     }else if((uiIndexOfp_arrayFahrablauf >= uiLengthOfp_arrayFahrablauf)&& (ulISRDriveCounterInSec == 0)){
           myFahrwerk.stopp();
+          uiIndexOfp_arrayFahrablauf = 0;
+          ulISRDriveCounterInSec = 0;
           uiRetVal = 1; /*Fahren nicht aktiv*/
     }
   
