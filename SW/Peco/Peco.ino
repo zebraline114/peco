@@ -94,7 +94,7 @@ void setup() {
 
   /*Interrupt Timer auf 1sec konigurieren   */
   Timer3.initialize(1000000);
-  Timer3.attachInterrupt(ISR_Timer3, 1000000);
+  Timer3.attachInterrupt(ISR_Timer3, 50000);
   sei(); /*Interrupts einschalten*/
 
 
@@ -170,13 +170,22 @@ void loop() {
 
 void ISR_Timer3(){ /*Wird aufgerufen wenn Timer3 abgelaufen ist und zählt Laufvariable von State 1 hoch*/
 
-    //Serial.println("ISR_Timer3 aufgerufen");
+static unsigned int uiSekundencounter = 0;
+
+  if(uiSekundencounter >= 20){ /*Für's fahren genügt es aktuell Sekunden zu zählen, da der Timer 3 nun auf 50ms eingestellt ist muss 20x gezählt werden bis 1 sec voll ist*/
+  
     if(ulISRDriveCounterInSec>0){
       ulISRDriveCounterInSec--;
     }
-    if(ulISRcolorMeasureCounterInSec){
-      ulISRcolorMeasureCounterInSec--;
-      }
+    uiSekundencounter = 0;
+  }else{
+    uiSekundencounter++;
+  }
+  
+    //Serial.println("ISR_Timer3 aufgerufen");
+  if(ulISRcolorMeasureCounterInSec){
+    ulISRcolorMeasureCounterInSec--;
+    }
     //digitalWrite(13, digitalRead(13) ^ 1); /*Temporär um zu sehen ob ISR ausgeführt wird*/
   
 
