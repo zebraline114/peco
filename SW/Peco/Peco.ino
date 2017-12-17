@@ -55,6 +55,10 @@ static unsigned long ulArrayUnloadYellow[20][20]= {/**/
                                        {RECHTS, RUECKWAERTS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                        {55,          18,     0,         0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
                                      };
+static unsigned long ulArrayUnloadGreen[20][20]= {/**/
+                                       {LINKS, VORWAERTS, LINKS, RUECKWAERTS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                                       {10,          70,     140,         18,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
+                                     };                                     
 /**
  * Funktionen
  */
@@ -108,7 +112,7 @@ void setup() {
 */
 
 void loop() {
-  unsigned int uiColor = 0;
+
 
 
   switch(mainState)
@@ -122,44 +126,35 @@ void loop() {
 
    case DRIVE_AND_COLLECT:
       Serial.println(" DRIVE_AND_COLLECT ");
-      /*     
-      Hier werden RGB Daten auswerten und Servo angesteuert
-      */
-
-      uiColor = myFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
-      Serial.print(" myFabsensor.getColor : "); Serial.println(uiColor);
-      switch(uiColor){
-        case 0:
-          // Wenn kein Toeggel erkannt wurde, lass alles so wie es ist
-          break;
-        case 1:
-          mySortierServoMotor.write(0); // Wenn gruener Toeggel erkannt wurde, stelle Servomotor auf 0°
-          break;
-        case 2:
-          mySortierServoMotor.write(25); // Wenn gelber Toeggel erkannt wurde, stelle Servomotor auf 25°
-          break;
-       // default:
-          // lass alles so wie es ist
-        
-        }
-      
+       /*sortiere*/
+      sortiereToeggel();  
       //Sammelfahrt starten
       if(1 == fahreAblauf(ulArrayDriveCollect)){
         mainState = UNLOAD_YELLOW;
-        }
+      }
       
       break;
 
    case UNLOAD_YELLOW:
       Serial.println(" UNLOAD_YELLOW ");
+      /*sortiere*/
+      sortiereToeggel();
       if(1 == fahreAblauf(ulArrayUnloadYellow)){
+        myLadeklappeServoMotor.write(20);
+        delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/       
         mainState = UNLOAD_GREEN;
       }
       break;
       
    case UNLOAD_GREEN:
       Serial.println(" UNLOAD_GREEN");
-      mainState = END;
+      /*sortiere*/
+      sortiereToeggel();
+      if(1 == fahreAblauf(ulArrayUnloadGreen)){
+        myLadeklappeServoMotor.write(40);
+        delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
+        mainState = END;
+      }
       break;
       
    case END:
@@ -266,7 +261,7 @@ unsigned int fahreAblauf(unsigned long p_arrayFahrablauf[][20]){
           myFahrwerk.stopp();
           uiIndexOfp_arrayFahrablauf = 0;
           uiRetVal = 1; /*Fahren nicht aktiv*/
-
+      break;
       default:
           myFahrwerk.stopp();
           uiIndexOfp_arrayFahrablauf = 0;
@@ -287,3 +282,30 @@ unsigned int fahreAblauf(unsigned long p_arrayFahrablauf[][20]){
   
   
 }
+
+void sortiereToeggel(void){
+    static unsigned int uiColor = 0;
+          /*     
+      Hier werden RGB Daten auswerten und Servo angesteuert
+      */
+
+    uiColor = myFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
+    Serial.print(" myFabsensor.getColor : "); Serial.println(uiColor);
+    switch(uiColor){
+      case 0:
+        // Wenn kein Toeggel erkannt wurde, lass alles so wie es ist
+        break;
+      case 1:
+        mySortierServoMotor.write(0); // Wenn gruener Toeggel erkannt wurde, stelle Servomotor auf 0°
+        break;
+      case 2:
+        mySortierServoMotor.write(25); // Wenn gelber Toeggel erkannt wurde, stelle Servomotor auf 25°
+      break;
+      default:
+        // lass alles so wie es ist
+      break;
+        
+        
+        }
+  
+  }
