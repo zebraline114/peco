@@ -128,67 +128,68 @@ void loop() {
       ulTasterZeit  = millis(); //aktualisiere Tasterzeit
       tasterGedrueckt = 1;  //speichert, dass Taster gedrückt wurde
     }
-  if((millis() - ulTasterZeit) > ulEntprellzeit){
+  if((millis() - ulTasterZeit) > ulEntprellzeit && (tasterGedrueckt == 1)){
       tasterGedrueckt = 0;
       bRunning = !bRunning;
        
     }
      Serial.print(" bRunning: ");Serial.println(bRunning);
 
-
-  switch(mainState)
-  {
-    case INIT:
-      Serial.println(" INIT: starte Buerstenmotor   SPEED_VOLLGAS");
-      myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-      //sammelfahrt();
-      mainState = DRIVE_AND_COLLECT;
-      break;
-
-   case DRIVE_AND_COLLECT:
-      Serial.println(" DRIVE_AND_COLLECT ");
-       /*sortiere*/
-      sortiereToeggel();  
-      //Sammelfahrt starten
-      if(1 == fahreAblauf(ulArrayDriveCollect)){
-        mainState = UNLOAD_YELLOW;
-      }
-      
-      break;
-
-   case UNLOAD_YELLOW:
-      Serial.println(" UNLOAD_YELLOW ");
-      /*sortiere*/
-      sortiereToeggel();
-      if(1 == fahreAblauf(ulArrayUnloadYellow)){
-        myLadeklappeServoMotor.write(20);
-        delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/       
-        mainState = UNLOAD_GREEN;
-      }
-      break;
-      
-   case UNLOAD_GREEN:
-      Serial.println(" UNLOAD_GREEN");
-      /*sortiere*/
-      sortiereToeggel();
-      if(1 == fahreAblauf(ulArrayUnloadGreen)){
-        myLadeklappeServoMotor.write(40);
-        delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
-        mainState = END;
-      }
-      break;
-      
-   case END:
-      Serial.println(" END ");
-      myBuerstenmotor.stopp();
-      break;   
-   default:
-      Serial.println(" default ");
-      myFahrwerk.stopp();
-       
-
- 
-      }
+ if(true == bRunning){
+    switch(mainState)
+    {
+      case INIT:
+        Serial.println(" INIT: starte Buerstenmotor   SPEED_VOLLGAS");
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        //sammelfahrt();
+        mainState = DRIVE_AND_COLLECT;
+        break;
+  
+     case DRIVE_AND_COLLECT:
+        Serial.println(" DRIVE_AND_COLLECT ");
+         /*sortiere*/
+        sortiereToeggel();  
+        //Sammelfahrt starten
+        if(1 == fahreAblauf(ulArrayDriveCollect)){
+          mainState = UNLOAD_YELLOW;
+        }
+        
+        break;
+  
+     case UNLOAD_YELLOW:
+        Serial.println(" UNLOAD_YELLOW ");
+        /*sortiere*/
+        sortiereToeggel();
+        if(1 == fahreAblauf(ulArrayUnloadYellow)){
+          myLadeklappeServoMotor.write(20);
+          delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/       
+          mainState = UNLOAD_GREEN;
+        }
+        break;
+        
+     case UNLOAD_GREEN:
+        Serial.println(" UNLOAD_GREEN");
+        /*sortiere*/
+        sortiereToeggel();
+        if(1 == fahreAblauf(ulArrayUnloadGreen)){
+          myLadeklappeServoMotor.write(40);
+          delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
+          mainState = END;
+        }
+        break;
+        
+     case END:
+        Serial.println(" END ");
+        myBuerstenmotor.stopp();
+        break;   
+     default:
+        Serial.println(" default ");
+        myFahrwerk.stopp();
+         
+        }
+  }else{
+    myFahrwerk.stopp();
+  }
 
 }
 
