@@ -116,9 +116,11 @@ void setup() {
 
 void loop() {
 
-  uint8_t tasterStatus = LOW;
+  /*Status vom An/Aus Taster abfragen, bzw ggf toggeln*/
+  getOnOffTaster();
+ /* uint8_t tasterStatus = LOW;
   static uint8_t tasterGedrueckt = 0;
-  static unsigned long ulTasterZeit = 0; /*Laufvariable für Tasterentprellung*/
+  static unsigned long ulTasterZeit = 0; //Laufvariable für Tasterentprellung
   unsigned long ulEntprellzeit = 200;
   
   //Lesen Tasterpin
@@ -132,8 +134,8 @@ void loop() {
       tasterGedrueckt = 0;
       bRunning = !bRunning;
        
-    }
-     Serial.print(" bRunning: ");Serial.println(bRunning);
+  }*/
+  Serial.print(" bRunning: ");Serial.println(bRunning);
 
  if(true == bRunning){
     switch(mainState)
@@ -147,6 +149,7 @@ void loop() {
   
      case DRIVE_AND_COLLECT:
         Serial.println(" DRIVE_AND_COLLECT ");
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
          /*sortiere*/
         sortiereToeggel();  
         //Sammelfahrt starten
@@ -158,6 +161,7 @@ void loop() {
   
      case UNLOAD_YELLOW:
         Serial.println(" UNLOAD_YELLOW ");
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
         /*sortiere*/
         sortiereToeggel();
         if(1 == fahreAblauf(ulArrayUnloadYellow)){
@@ -169,6 +173,7 @@ void loop() {
         
      case UNLOAD_GREEN:
         Serial.println(" UNLOAD_GREEN");
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
         /*sortiere*/
         sortiereToeggel();
         if(1 == fahreAblauf(ulArrayUnloadGreen)){
@@ -189,6 +194,8 @@ void loop() {
         }
   }else{
     myFahrwerk.stopp();
+    myBuerstenmotor.stopp();
+    
   }
 
 }
@@ -326,8 +333,25 @@ void sortiereToeggel(void){
       default:
         // lass alles so wie es ist
       break;
-        
-        
         }
+}
+
+void getOnOffTaster(void){
+  uint8_t tasterStatus = LOW;
+  static uint8_t tasterGedrueckt = 0;
+  static unsigned long ulTasterZeit = 0; //Laufvariable für Tasterentprellung
+  unsigned long ulEntprellzeit = 200;
   
-  }
+  //Lesen Tasterpin
+  tasterStatus = digitalRead(TASTER_ON_OFF);
+
+  if (tasterStatus == HIGH){
+      ulTasterZeit  = millis(); //aktualisiere Tasterzeit
+      tasterGedrueckt = 1;  //speichert, dass Taster gedrückt wurde
+    }
+  if((millis() - ulTasterZeit) > ulEntprellzeit && (tasterGedrueckt == 1)){
+      tasterGedrueckt = 0;
+      bRunning = !bRunning;
+       
+  } 
+}
