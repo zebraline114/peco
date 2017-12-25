@@ -10,6 +10,7 @@ class Taster
 	Taster();
     void init(Print &print, uint8_t p_u8InputPin);
 	void getTaster(boolean *p_bRunning);
+	uint8_t Taster::getTaster();
 	
   private:
 	Print* printer;

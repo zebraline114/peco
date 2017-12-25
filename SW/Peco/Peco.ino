@@ -19,6 +19,7 @@
 #define TOEGGELI_DISTANZ_ECHO  2
 #define TOEGGELI_DISTANZ_TRIG  3
 #define TASTER_ON_OFF 4
+#define ENDTASTER_RECHTS 5
 /*PWM PINs*/
 #define SORTIER_SERVO_OUTPUT_PIN  6
 #define SUCH_SERVO_OUTPUT_PIN  9
@@ -29,7 +30,9 @@ static enum eMainStates mainState; /* Laufvariable für Statemachine */
 static enum eRichtungen richtung; /* Richtungen zum fahren */
 static unsigned long ulISRDriveCounterInSec; /* Laufvariable für Zeit während Fahren */
 static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
-static boolean bRunning = false;
+static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
+static boolean bEndTasterRechts = false; /*Wird abhängig vom OnOffTaster getoggelt*/
+
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
@@ -46,6 +49,7 @@ static WandDistanz myWandDistanz;
 static ToeggeliDistanz myToeggeliDistanz;
 static Farbsensor myFarbsensor;
 static Taster myOnOffTaster;
+static Taster myEndTasterRechts;
 
 
 
@@ -80,6 +84,7 @@ void setup() {
   pinMode(TOEGGELI_DISTANZ_ECHO, INPUT);
   pinMode(TOEGGELI_DISTANZ_TRIG, OUTPUT);
   pinMode(TASTER_ON_OFF, INPUT);
+  pinMode(ENDTASTER_RECHTS, INPUT);
   pinMode (SUCH_SERVO_OUTPUT_PIN, OUTPUT);
   pinMode (SORTIER_SERVO_OUTPUT_PIN, OUTPUT);
   pinMode (LADEKLAPPE_SERVO_OUTPUT_PIN, OUTPUT);
@@ -91,6 +96,7 @@ void setup() {
   myWandDistanz.init(Serial, WAND_DISTANZ_SENSOR); //
   myToeggeliDistanz.init(Serial, TOEGGELI_DISTANZ_ECHO, TOEGGELI_DISTANZ_TRIG);
   myOnOffTaster.init(Serial, TASTER_ON_OFF);
+  myEndTasterRechts.init(Serial, ENDTASTER_RECHTS);
   mySuchServoMotor.attach(SUCH_SERVO_OUTPUT_PIN);
   mySortierServoMotor.attach(SORTIER_SERVO_OUTPUT_PIN);
   myLadeklappeServoMotor.attach(LADEKLAPPE_SERVO_OUTPUT_PIN);
@@ -118,12 +124,13 @@ void setup() {
 */
 
 void loop() {
-
+  boolean bEndTasterRechts;
   /*Status vom An/Aus Taster abfragen, bzw ggf toggeln*/
   //getOnOffTaster();
   myOnOffTaster.getTaster(&bRunning);
   Serial.print(" bRunning: ");Serial.println(bRunning);
-  
+  bEndTasterRechts = myEndTasterRechts.getTaster();
+  Serial.print(" bEndTasterRechts: ");Serial.println(bEndTasterRechts);  
 
  if(true == bRunning){
     switch(mainState)
@@ -316,35 +323,15 @@ void sortiereToeggel(void){
       case 1:
         mySortierServoMotor.write(0); // Wenn gruener Toeggel erkannt wurde, stelle Servomotor auf 0°
         Serial.print(" Servo Motor auf gruen : ");
-        delay(500);
+        //delay(500);
         break;
       case 2:
         mySortierServoMotor.write(25); // Wenn gelber Toeggel erkannt wurde, stelle Servomotor auf 25°
         Serial.print(" Servo Motor auf GELB : ");
-        delay(500);
+        //delay(500);
       break;
       default:
         // lass alles so wie es ist
       break;
         }
-}
-
-void getOnOffTaster(void){
-  uint8_t tasterStatus = LOW;
-  static uint8_t tasterGedrueckt = 0;
-  static unsigned long ulTasterZeit = 0; //Laufvariable für Tasterentprellung
-  unsigned long ulEntprellzeit = 200;
-  
-  //Lesen Tasterpin
-  tasterStatus = digitalRead(TASTER_ON_OFF);
-
-  if (tasterStatus == HIGH){
-      ulTasterZeit  = millis(); //aktualisiere Tasterzeit
-      tasterGedrueckt = 1;  //speichert, dass Taster gedrückt wurde
-    }
-  if((millis() - ulTasterZeit) > ulEntprellzeit && (tasterGedrueckt == 1)){
-      tasterGedrueckt = 0;
-      bRunning = !bRunning;
-       
-  } 
 }

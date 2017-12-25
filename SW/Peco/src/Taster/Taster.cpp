@@ -45,3 +45,20 @@ void Taster::getTaster(boolean *p_bRunning){
   } 
 	
 }
+
+uint8_t Taster::getTaster(){
+
+  uint8_t u8EntprellZeit = 50;
+  static unsigned long ulLetzteMessung = millis();
+  static uint8_t tasterStatus = 0;
+  
+  if((millis - ulLetzteMessung)>u8EntprellZeit){
+	// Immern nach Entprellzeit neuen Wert abholen
+	tasterStatus = digitalRead(u8InputPin);
+  
+	ulLetzteMessung = millis();
+		
+  }
+  return tasterStatus;
+	
+}
