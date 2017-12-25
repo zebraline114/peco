@@ -5,6 +5,7 @@
 #include "src/ToeggeliDistanz/ToeggeliDistanz.h"
 #include "src/Timer3/TimerThree.h"
 #include "src/Farbsensor/Farbsensor.h"
+#include "src/Taster/Taster.h"
 #include <Servo.h>
 #include "Peco.h"
 
@@ -44,7 +45,7 @@ static Servo myLadeklappeServoMotor; /*Servomotor für Ladeklappe*/
 static WandDistanz myWandDistanz;
 static ToeggeliDistanz myToeggeliDistanz;
 static Farbsensor myFarbsensor;
-
+static Taster myOnOffTaster;
 
 
 
@@ -89,12 +90,14 @@ void setup() {
   myFarbsensor.init(Serial);
   myWandDistanz.init(Serial, WAND_DISTANZ_SENSOR); //
   myToeggeliDistanz.init(Serial, TOEGGELI_DISTANZ_ECHO, TOEGGELI_DISTANZ_TRIG);
+  myOnOffTaster.init(Serial, TASTER_ON_OFF);
   mySuchServoMotor.attach(SUCH_SERVO_OUTPUT_PIN);
   mySortierServoMotor.attach(SORTIER_SERVO_OUTPUT_PIN);
   myLadeklappeServoMotor.attach(LADEKLAPPE_SERVO_OUTPUT_PIN);
   mySuchServoMotor.write(0); // SuchMotor sauber initialisiern, sonst ist Ausgansposition nicht klar
   myLadeklappeServoMotor.write(0);
   mySortierServoMotor.write(0);
+  
 
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
@@ -117,7 +120,8 @@ void setup() {
 void loop() {
 
   /*Status vom An/Aus Taster abfragen, bzw ggf toggeln*/
-  getOnOffTaster();
+  //getOnOffTaster();
+  myOnOffTaster.getTaster(&bRunning);
   Serial.print(" bRunning: ");Serial.println(bRunning);
   
 
@@ -150,7 +154,7 @@ void loop() {
         sortiereToeggel();
         if(1 == fahreAblauf(ulArrayUnloadYellow)){
           myLadeklappeServoMotor.write(20);
-          delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/       
+         // delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/       
           mainState = UNLOAD_GREEN;
         }
         break;
@@ -162,7 +166,8 @@ void loop() {
         sortiereToeggel();
         if(1 == fahreAblauf(ulArrayUnloadGreen)){
           myLadeklappeServoMotor.write(40);
-          delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
+         //
+         //delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
           mainState = END;
         }
         break;
