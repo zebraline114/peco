@@ -118,24 +118,8 @@ void loop() {
 
   /*Status vom An/Aus Taster abfragen, bzw ggf toggeln*/
   getOnOffTaster();
- /* uint8_t tasterStatus = LOW;
-  static uint8_t tasterGedrueckt = 0;
-  static unsigned long ulTasterZeit = 0; //Laufvariable für Tasterentprellung
-  unsigned long ulEntprellzeit = 200;
-  
-  //Lesen Tasterpin
-  tasterStatus = digitalRead(TASTER_ON_OFF);
-
-  if (tasterStatus == HIGH){
-      ulTasterZeit  = millis(); //aktualisiere Tasterzeit
-      tasterGedrueckt = 1;  //speichert, dass Taster gedrückt wurde
-    }
-  if((millis() - ulTasterZeit) > ulEntprellzeit && (tasterGedrueckt == 1)){
-      tasterGedrueckt = 0;
-      bRunning = !bRunning;
-       
-  }*/
   Serial.print(" bRunning: ");Serial.println(bRunning);
+  
 
  if(true == bRunning){
     switch(mainState)
@@ -149,7 +133,7 @@ void loop() {
   
      case DRIVE_AND_COLLECT:
         Serial.println(" DRIVE_AND_COLLECT ");
-        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); /*Einschalten für den Fall, dass */
          /*sortiere*/
         sortiereToeggel();  
         //Sammelfahrt starten
@@ -326,9 +310,13 @@ void sortiereToeggel(void){
         break;
       case 1:
         mySortierServoMotor.write(0); // Wenn gruener Toeggel erkannt wurde, stelle Servomotor auf 0°
+        Serial.print(" Servo Motor auf gruen : ");
+        delay(500);
         break;
       case 2:
         mySortierServoMotor.write(25); // Wenn gelber Toeggel erkannt wurde, stelle Servomotor auf 25°
+        Serial.print(" Servo Motor auf GELB : ");
+        delay(500);
       break;
       default:
         // lass alles so wie es ist
