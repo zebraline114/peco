@@ -20,6 +20,7 @@
 #define TOEGGELI_DISTANZ_TRIG  3
 #define TASTER_ON_OFF 4
 #define ENDTASTER_RECHTS 5
+#define ENDTASTER_LINKS 7
 /*PWM PINs*/
 #define SORTIER_SERVO_OUTPUT_PIN  6
 #define SUCH_SERVO_OUTPUT_PIN  9
@@ -31,8 +32,8 @@ static enum eRichtungen richtung; /* Richtungen zum fahren */
 static unsigned long ulISRDriveCounterInSec; /* Laufvariable für Zeit während Fahren */
 static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
-static boolean bEndTasterRechts = false; /*Wird abhängig vom OnOffTaster getoggelt*/
-
+static boolean bEndTasterRechts = false; /*Anschlag für Rückwärtsfahren rechts*/
+static boolean bEndTasterLinks = false; /*Anschlag für Rückwärtsfahren links*/
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
@@ -50,6 +51,7 @@ static ToeggeliDistanz myToeggeliDistanz;
 static Farbsensor myFarbsensor;
 static Taster myOnOffTaster;
 static Taster myEndTasterRechts;
+static Taster myEndTasterLinks;
 
 
 
@@ -59,13 +61,13 @@ static uint8_t ulArrayDriveCollect[20][20]= {/**/
                                        {10,          95,     6,         45,     12,         45,     12,       45,      12,       45,      12,       45,      12,       45,      12,       45,      12,       45,      6,       0}  
                                      };
 static uint8_t ulArrayUnloadYellow[20][20]= {/**/
-                                       {RECHTS, RUECKWAERTS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                                       {55,          18,     0,         0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
+                                       {RECHTS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                                       {55,        0,     0,         0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
                                      };
 static uint8_t ulArrayUnloadGreen[20][20]= {/**/
-                                       {LINKS, VORWAERTS, LINKS, RUECKWAERTS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                                       {10,          70,     140,         18,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
-                                     };                                     
+                                       {LINKS, VORWAERTS, LINKS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                                       {10,          70,    140,    0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
+                                     };    
 /**
  * Funktionen
  */
@@ -85,6 +87,7 @@ void setup() {
   pinMode(TOEGGELI_DISTANZ_TRIG, OUTPUT);
   pinMode(TASTER_ON_OFF, INPUT);
   pinMode(ENDTASTER_RECHTS, INPUT);
+  pinMode(ENDTASTER_LINKS, INPUT);
   pinMode (SUCH_SERVO_OUTPUT_PIN, OUTPUT);
   pinMode (SORTIER_SERVO_OUTPUT_PIN, OUTPUT);
   pinMode (LADEKLAPPE_SERVO_OUTPUT_PIN, OUTPUT);
@@ -97,6 +100,7 @@ void setup() {
   myToeggeliDistanz.init(Serial, TOEGGELI_DISTANZ_ECHO, TOEGGELI_DISTANZ_TRIG);
   myOnOffTaster.init(Serial, TASTER_ON_OFF);
   myEndTasterRechts.init(Serial, ENDTASTER_RECHTS);
+  myEndTasterLinks.init(Serial, ENDTASTER_LINKS);
   mySuchServoMotor.attach(SUCH_SERVO_OUTPUT_PIN);
   mySortierServoMotor.attach(SORTIER_SERVO_OUTPUT_PIN);
   myLadeklappeServoMotor.attach(LADEKLAPPE_SERVO_OUTPUT_PIN);
@@ -107,7 +111,8 @@ void setup() {
 
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
-  mainState = INIT;
+  //mainState = INIT;
+  mainState = UNLOAD_YELLOW;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
@@ -128,9 +133,8 @@ void loop() {
   /*Status vom An/Aus Taster abfragen, bzw ggf toggeln*/
   //getOnOffTaster();
   myOnOffTaster.getTaster(&bRunning);
-  Serial.print(" bRunning: ");Serial.println(bRunning);
-  bEndTasterRechts = myEndTasterRechts.getTaster();
-  Serial.print(" bEndTasterRechts: ");Serial.println(bEndTasterRechts);  
+  Serial.print(" bRunning: ");Serial.println(bRunning); 
+
 
  if(true == bRunning){
     switch(mainState)
@@ -149,34 +153,87 @@ void loop() {
         sortiereToeggel();  
         //Sammelfahrt starten
         if(1 == fahreAblauf(ulArrayDriveCollect)){
-          mainState = UNLOAD_YELLOW;
+          mainState = DRIVE_TO_YELLOW;
         }
         
         break;
   
+     case DRIVE_TO_YELLOW:
+        Serial.println(" DRIVE_TO_YELLOW ");
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        /*sortiere*/
+        sortiereToeggel();
+        if(1 == fahreAblauf(ulArrayUnloadYellow)){     
+          mainState = UNLOAD_YELLOW;
+        }          
+        break;
+     
+     
      case UNLOAD_YELLOW:
         Serial.println(" UNLOAD_YELLOW ");
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
         /*sortiere*/
         sortiereToeggel();
-        if(1 == fahreAblauf(ulArrayUnloadYellow)){
-          myLadeklappeServoMotor.write(20);
-         // delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/       
+        /*Fahren bis Endschalter auslösen*/
+        bEndTasterRechts = myEndTasterRechts.getTaster();
+        Serial.print(" bEndTasterRechts: ");Serial.println(bEndTasterRechts);  
+        bEndTasterLinks = myEndTasterLinks.getTaster();
+        Serial.print(" bEndTasterLinks: ");Serial.println(bEndTasterLinks);  
+
+        if(1 == bEndTasterRechts){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
+            myFahrwerk.stoppRechts();
+          }else{
+            myFahrwerk.fahrRueckwaertsRechts(SPEED_GANZLANGSAM);
+        }
+        if(1 == bEndTasterLinks){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
+            myFahrwerk.stoppLinks();
+          }else{
+            myFahrwerk.fahrRueckwaertsLinks(SPEED_GANZLANGSAM);
+        }
+        if((1 == bEndTasterRechts) && (1 == bEndTasterLinks)){
+          myLadeklappeServoMotor.write(40);
+          delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
+          mainState = DRIVE_TO_GREEN;
+          }
+        break;
+
+     case DRIVE_TO_GREEN:
+        Serial.println(" DRIVE_TO_GREEN");
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        /*sortiere*/
+        sortiereToeggel();
+        if(1 == fahreAblauf(ulArrayUnloadGreen)){            
           mainState = UNLOAD_GREEN;
         }
-        break;
+        break;      
+     break;
         
      case UNLOAD_GREEN:
         Serial.println(" UNLOAD_GREEN");
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
         /*sortiere*/
         sortiereToeggel();
-        if(1 == fahreAblauf(ulArrayUnloadGreen)){
-          myLadeklappeServoMotor.write(40);
-         //
-         //delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
-          mainState = END;
+        /*Fahren bis Endschalter auslösen*/
+        bEndTasterRechts = myEndTasterRechts.getTaster();
+        Serial.print(" bEndTasterRechts: ");Serial.println(bEndTasterRechts);  
+        bEndTasterLinks = myEndTasterLinks.getTaster();
+        Serial.print(" bEndTasterLinks: ");Serial.println(bEndTasterLinks);  
+
+        if(1 == bEndTasterRechts){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
+            myFahrwerk.stoppRechts();
+          }else{
+            myFahrwerk.fahrRueckwaertsRechts(SPEED_GANZLANGSAM);
         }
+        if(1 == bEndTasterLinks){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
+            myFahrwerk.stoppLinks();
+          }else{
+            myFahrwerk.fahrRueckwaertsLinks(SPEED_GANZLANGSAM);
+        }
+        if((1 == bEndTasterRechts) && (1 == bEndTasterLinks)){
+          myLadeklappeServoMotor.write(20);
+          delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
+          mainState = END;
+          }
         break;
         
      case END:

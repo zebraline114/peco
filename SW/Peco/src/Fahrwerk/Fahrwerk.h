@@ -19,10 +19,14 @@ class Fahrwerk
     void init(Print &print);
     void fahrVorwaerts(unsigned long p_ulSpeed);
     void fahrRueckwaerts(unsigned long p_ulSpeed);
+	void fahrRueckwaertsRechts(unsigned long p_ulSpeed);
+	void fahrRueckwaertsLinks(unsigned long p_ulSpeed);
 	unsigned long lenkeRechts(unsigned long p_ulSpeed, unsigned long p_ulGrad);
 	unsigned long lenkeLinks(unsigned long p_ulSpeed, unsigned long p_ulGrad);
 	unsigned long fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm);
 	unsigned long fahrRueckwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm);
+	void stoppRechts();
+	void stoppLinks();
 	void stopp();
 
   private:

@@ -73,7 +73,7 @@ unsigned long Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_u
 
 unsigned long Fahrwerk::fahrRueckwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm)
 {
-	Serial.println("Fahrwerk::fahrRueckwaerts");
+	printer->println("Fahrwerk::fahrRueckwaerts");
 	// the motors shall run forward
 		// Set the speed to start, from 0 (off) to 255 (max speed)
 	unsigned long lTimeInMs = calcDistanceToDelay(p_ulDistanceInCm);
@@ -87,12 +87,50 @@ unsigned long Fahrwerk::fahrRueckwaerts(unsigned long p_ulSpeed, unsigned long p
 
 void Fahrwerk::fahrRueckwaerts(unsigned long p_ulSpeed)
 {
-	Serial.println("Fahrwerk::fahrRueckwaerts");
+	printer->println("Fahrwerk::fahrRueckwaerts");
 	// the motors shall run backward
 	myMotorRight->setSpeed(p_ulSpeed);
 	myMotorLeft->setSpeed(p_ulSpeed);
 	myMotorRight->run(BACKWARD);
 	myMotorLeft->run(BACKWARD);
+	
+}
+
+void Fahrwerk::fahrRueckwaertsRechts(unsigned long p_ulSpeed)
+{
+	printer->println("Fahrwerk::fahrRueckwaertsRechts");
+	// the right motor shall run backward
+	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorRight->run(BACKWARD);
+	
+}
+
+void Fahrwerk::fahrRueckwaertsLinks(unsigned long p_ulSpeed)
+{
+	printer->println("Fahrwerk::fahrRueckwaertsLinks");
+	// the left motor shall run backward
+	myMotorLeft->setSpeed(p_ulSpeed);
+	myMotorLeft->run(BACKWARD);
+	
+}
+
+
+
+void Fahrwerk::stoppRechts()
+{
+	printer->println("Fahrwerk::stoppRechts");
+
+	// turn off right motor
+	myMotorRight->run(RELEASE);
+	
+}
+
+void Fahrwerk::stoppLinks()
+{
+	printer->println("Fahrwerk::stoppLinks");
+
+	// turn off left motor
+	myMotorLeft->run(RELEASE);
 	
 }
 
