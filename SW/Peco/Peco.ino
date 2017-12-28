@@ -32,8 +32,6 @@ static enum eRichtungen richtung; /* Richtungen zum fahren */
 static unsigned long ulISRDriveCounterInSec; /* Laufvariable für Zeit während Fahren */
 static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
-static boolean bEndTasterRechts = false; /*Anschlag für Rückwärtsfahren rechts*/
-static boolean bEndTasterLinks = false; /*Anschlag für Rückwärtsfahren links*/
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
@@ -111,8 +109,8 @@ void setup() {
 
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
-  //mainState = INIT;
-  mainState = UNLOAD_YELLOW;
+  mainState = INIT;
+  //mainState = UNLOAD_YELLOW;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
@@ -175,26 +173,9 @@ void loop() {
         /*sortiere*/
         sortiereToeggel();
         /*Fahren bis Endschalter auslösen*/
-        bEndTasterRechts = myEndTasterRechts.getTaster();
-        Serial.print(" bEndTasterRechts: ");Serial.println(bEndTasterRechts);  
-        bEndTasterLinks = myEndTasterLinks.getTaster();
-        Serial.print(" bEndTasterLinks: ");Serial.println(bEndTasterLinks);  
-
-        if(1 == bEndTasterRechts){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
-            myFahrwerk.stoppRechts();
-          }else{
-            myFahrwerk.fahrRueckwaertsRechts(SPEED_GANZLANGSAM);
+        if(1 == abladen(40)){
+           mainState = DRIVE_TO_GREEN;       
         }
-        if(1 == bEndTasterLinks){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
-            myFahrwerk.stoppLinks();
-          }else{
-            myFahrwerk.fahrRueckwaertsLinks(SPEED_GANZLANGSAM);
-        }
-        if((1 == bEndTasterRechts) && (1 == bEndTasterLinks)){
-          myLadeklappeServoMotor.write(40);
-          delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
-          mainState = DRIVE_TO_GREEN;
-          }
         break;
 
      case DRIVE_TO_GREEN:
@@ -214,26 +195,9 @@ void loop() {
         /*sortiere*/
         sortiereToeggel();
         /*Fahren bis Endschalter auslösen*/
-        bEndTasterRechts = myEndTasterRechts.getTaster();
-        Serial.print(" bEndTasterRechts: ");Serial.println(bEndTasterRechts);  
-        bEndTasterLinks = myEndTasterLinks.getTaster();
-        Serial.print(" bEndTasterLinks: ");Serial.println(bEndTasterLinks);  
-
-        if(1 == bEndTasterRechts){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
-            myFahrwerk.stoppRechts();
-          }else{
-            myFahrwerk.fahrRueckwaertsRechts(SPEED_GANZLANGSAM);
+        if(1 == abladen(20)){
+           mainState = END;       
         }
-        if(1 == bEndTasterLinks){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
-            myFahrwerk.stoppLinks();
-          }else{
-            myFahrwerk.fahrRueckwaertsLinks(SPEED_GANZLANGSAM);
-        }
-        if((1 == bEndTasterRechts) && (1 == bEndTasterLinks)){
-          myLadeklappeServoMotor.write(20);
-          delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
-          mainState = END;
-          }
         break;
         
      case END:
@@ -391,4 +355,32 @@ void sortiereToeggel(void){
         // lass alles so wie es ist
       break;
         }
+}
+
+/*Rückwärts fahren bis beide Endschalter auslösen*/
+boolean abladen(unsigned int p_uiServoStellungInGrad){
+    boolean bEndTasterRechts; /*Anschlag für Rückwärtsfahren rechts*/
+    boolean bEndTasterLinks; /*Anschlag für Rückwärtsfahren links*/
+    boolean bRetVal = 0;
+    bEndTasterRechts = myEndTasterRechts.getTaster();
+    Serial.print(" bEndTasterRechts: ");Serial.println(bEndTasterRechts);  
+    bEndTasterLinks = myEndTasterLinks.getTaster();
+    Serial.print(" bEndTasterLinks: ");Serial.println(bEndTasterLinks);  
+
+    if(1 == bEndTasterRechts){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
+        myFahrwerk.stoppRechts();
+      }else{
+        myFahrwerk.fahrRueckwaertsRechts(SPEED_GANZLANGSAM);
+    }
+    if(1 == bEndTasterLinks){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
+        myFahrwerk.stoppLinks();
+      }else{
+        myFahrwerk.fahrRueckwaertsLinks(SPEED_GANZLANGSAM);
+    }
+    if((1 == bEndTasterRechts) && (1 == bEndTasterLinks)){
+      myLadeklappeServoMotor.write(p_uiServoStellungInGrad);
+      delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
+      bRetVal = 1;
+      }
+    return bRetVal;
 }
