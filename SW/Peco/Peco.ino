@@ -22,8 +22,8 @@
 #define ENDTASTER_RECHTS 5
 #define ENDTASTER_LINKS 7
 /*PWM PINs*/
-#define SORTIER_SERVO_OUTPUT_PIN  6
-#define SUCH_SERVO_OUTPUT_PIN  9
+#define SORTIER_SERVO_OUTPUT_PIN  9
+#define SUCH_SERVO_OUTPUT_PIN  6
 #define LADEKLAPPE_SERVO_OUTPUT_PIN 10
 
 static int iDoItOnlyOnce = 0; /*Temporäre Hilfsvariable für Entwicklunszwecke*/
