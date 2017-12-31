@@ -16,6 +16,7 @@
 #define WAND_DISTANZ_SENSOR 0 //Distanzsensor ist an Analog IN Pin 0
 
 /*Digitale PINs*/
+#define SERVO_RELAIS   1
 #define TOEGGELI_DISTANZ_ECHO  2
 #define TOEGGELI_DISTANZ_TRIG  3
 #define TASTER_ON_OFF 4
@@ -81,6 +82,8 @@ void setup() {
   * PINMODE
   */
   //pinMode(iLedOutputPIN,OUTPUT);
+  
+  pinMode(SERVO_RELAIS, OUTPUT);
   pinMode(TOEGGELI_DISTANZ_ECHO, INPUT);
   pinMode(TOEGGELI_DISTANZ_TRIG, OUTPUT);
   pinMode(TASTER_ON_OFF, INPUT);
@@ -89,6 +92,8 @@ void setup() {
   pinMode (SUCH_SERVO_OUTPUT_PIN, OUTPUT);
   pinMode (SORTIER_SERVO_OUTPUT_PIN, OUTPUT);
   pinMode (LADEKLAPPE_SERVO_OUTPUT_PIN, OUTPUT);
+
+  digitalWrite(SERVO_RELAIS,LOW); /*Speisung der Servomotoren sicher abschalten, bis Initialisierung beendet ist*/
 
   Serial.begin(9600);           // set up Serial library at 9600 bps
   myFahrwerk.init(Serial); // Muss aufgerufen um alle Objekte innerhalb vom Fahrwerkobjekt zu initialisieren (geht im Konstruktor nicht)
@@ -118,6 +123,7 @@ void setup() {
   Timer3.initialize(1000000);
   Timer3.attachInterrupt(ISR_Timer3, 50000);
   sei(); /*Interrupts einschalten*/
+  digitalWrite(SERVO_RELAIS,HIGH); /*Speisung der Servomotoren wieder einschalten*/
 
 
 }
