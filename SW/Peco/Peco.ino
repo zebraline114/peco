@@ -30,7 +30,7 @@
 static int iDoItOnlyOnce = 0; /*Temporäre Hilfsvariable für Entwicklunszwecke*/
 static enum eMainStates mainState; /* Laufvariable für Statemachine */
 static enum eRichtungen richtung; /* Richtungen zum fahren */
-static unsigned long ulISRDriveCounterInSec; /* Laufvariable für Zeit während Fahren */
+static unsigned long ulISRDriveCounterInSec = 0; /* Laufvariable für Zeit während Fahren */
 static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
 
@@ -258,20 +258,32 @@ unsigned int fahreAblauf(uint8_t p_arrayFahrablauf[][20]){
   unsigned long ulStreckeOderGrad = 0; 
   unsigned long ulDriveTimeMs=0; /*Variable um Zeit für Timer zwischenzuspeichern*/
   unsigned int uiRetVal;
+  unsigned long ulHBrueckenSchutzZeit = 50; //50ms Motor auf Stopp halten
+  static unsigned long ulHBrueckenSchutzCounter; //50ms Motor auf Stopp halten
+  static boolean bHBrueckenSchutz = 0;
   uiRetVal = 0;
   /*Wenn gerade nicht gefahren wird, */
   unsigned int uiLengthOfp_arrayFahrablauf = 0;
   
   uiLengthOfp_arrayFahrablauf = sizeof(p_arrayFahrablauf[0]) / sizeof(p_arrayFahrablauf[0][0]);
   Serial.print(" uiLengthOfp_arrayFahrablauf =");Serial.println(uiLengthOfp_arrayFahrablauf); 
+  if((ulISRDriveCounterInSec == 0) && (bHBrueckenSchutz == 0)){
+    ulHBrueckenSchutzCounter = millis(); //Zähler "aufziehen"
+    myFahrwerk.stopp();
+    bHBrueckenSchutz = 1;
+    Serial.println("H Brueckenschutz aktiv"); 
+    
+    }
   
-  if((uiIndexOfp_arrayFahrablauf < uiLengthOfp_arrayFahrablauf)&& (ulISRDriveCounterInSec == 0)){
+  if((uiIndexOfp_arrayFahrablauf < uiLengthOfp_arrayFahrablauf) //weiteres Element in Array vorhanden
+        && (ulISRDriveCounterInSec == 0) // Zeit vom Fahrablauf ist abgelaufen
+        && ((millis() - ulHBrueckenSchutzCounter ) > ulHBrueckenSchutzZeit) ){ //Zeit vom Hbrückenschutz ist abgelaufen
     ulRichtung = p_arrayFahrablauf[0][uiIndexOfp_arrayFahrablauf];
     ulStreckeOderGrad = p_arrayFahrablauf[1][uiIndexOfp_arrayFahrablauf];  
     Serial.print(" uiIndexOfp_arrayFahrablauf ="); Serial.println(uiIndexOfp_arrayFahrablauf); 
     Serial.print(" ulRichtung ="); Serial.println(ulRichtung);    
     Serial.print(" ulStreckeOderGrad ="); Serial.println(ulStreckeOderGrad);    
-
+    bHBrueckenSchutz = 0;
 
     
     switch(ulRichtung){
