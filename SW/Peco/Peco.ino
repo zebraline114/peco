@@ -344,35 +344,41 @@ unsigned int fahreAblauf(uint8_t p_arrayFahrablauf[][20]){
     
   return uiRetVal;
   
-  
 }
 
+     
+/*     
+  Hier werden RGB Daten auswerten und Servo angesteuert
+*/
 void sortiereToeggel(void){
     static unsigned int uiColor = 0;
-          /*     
-      Hier werden RGB Daten auswerten und Servo angesteuert
-      */
+    unsigned long ulDelay = 500; 
+    static unsigned long ulDelayCounter = 0;
 
-    uiColor = myFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
-    Serial.print(" myFabsensor.getColor : "); Serial.println(uiColor);
-    switch(uiColor){
-      case 0:
-        // Wenn kein Toeggel erkannt wurde, lass alles so wie es ist
-        break;
-      case 1:
-        mySortierServoMotor.write(0); // Wenn gruener Toeggel erkannt wurde, stelle Servomotor auf 0°
-        Serial.print(" Servo Motor auf gruen : ");
-        //delay(500);
-        break;
-      case 2:
-        mySortierServoMotor.write(25); // Wenn gelber Toeggel erkannt wurde, stelle Servomotor auf 25°
-        Serial.print(" Servo Motor auf GELB : ");
-        //delay(500);
-      break;
-      default:
-        // lass alles so wie es ist
-      break;
-        }
+    if((millis()-ulDelayCounter) > ulDelay){ //nur alle 500ms neue Werte abholen um Zeit von Erkennung zum Servo zu verlängern
+      
+        uiColor = myFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
+        Serial.print(" myFabsensor.getColor : "); Serial.println(uiColor);
+        switch(uiColor){
+          case 0:
+            // Wenn kein Toeggel erkannt wurde, lass alles so wie es ist
+            break;
+          case 1:
+            mySortierServoMotor.write(0); // Wenn gruener Toeggel erkannt wurde, stelle Servomotor auf 0°
+            Serial.print(" Servo Motor auf gruen : ");
+            //delay(500);
+            break;
+          case 2:
+            mySortierServoMotor.write(25); // Wenn gelber Toeggel erkannt wurde, stelle Servomotor auf 25°
+            Serial.print(" Servo Motor auf GELB : ");
+            //delay(500);
+          break;
+          default:
+            // lass alles so wie es ist
+          break;
+            }
+        ulDelayCounter = millis();
+    }
 }
 
 /*Rückwärts fahren bis beide Endschalter auslösen*/
