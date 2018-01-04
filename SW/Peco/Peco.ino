@@ -16,12 +16,13 @@
 #define WAND_DISTANZ_SENSOR 0 //Distanzsensor ist an Analog IN Pin 0
 
 /*Digitale PINs*/
-#define SERVO_RELAIS   1
+
 #define TOEGGELI_DISTANZ_ECHO  2
 #define TOEGGELI_DISTANZ_TRIG  3
 #define TASTER_ON_OFF 4
 #define ENDTASTER_RECHTS 5
 #define ENDTASTER_LINKS 7
+#define SERVO_RELAIS   8
 /*PWM PINs*/
 #define SORTIER_SERVO_OUTPUT_PIN  9
 #define SUCH_SERVO_OUTPUT_PIN  6
