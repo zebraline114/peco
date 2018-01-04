@@ -396,7 +396,7 @@ boolean abladen(unsigned int p_uiServoStellungInGrad){
       }else{
         myFahrwerk.fahrRueckwaertsRechts(SPEED_GANZLANGSAM);
     }
-    if(1 == bEndTasterLinks){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
+    if(1 == bEndTasterLinks){ //Wenn linker Endschalter ausgelöst hat, linkes Rad anhalten
         myFahrwerk.stoppLinks();
       }else{
         myFahrwerk.fahrRueckwaertsLinks(SPEED_GANZLANGSAM);
