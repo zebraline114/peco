@@ -52,7 +52,7 @@ uint8_t Taster::getTaster(){
   static unsigned long ulLetzteMessung = millis();
   static uint8_t tasterStatus = 0;
   
-  if((millis - ulLetzteMessung)>u8EntprellZeit){
+  if((millis() - ulLetzteMessung)>u8EntprellZeit){
 	// Immern nach Entprellzeit neuen Wert abholen
 	tasterStatus = digitalRead(u8InputPin);
   
