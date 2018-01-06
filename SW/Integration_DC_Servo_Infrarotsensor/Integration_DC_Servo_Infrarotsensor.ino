@@ -59,8 +59,8 @@ void setup() {
   myDCMotorLeft->setSpeed(SPEED_MOTOR_LEFT_SLOW);
   myDCMotorRight->setSpeed(SPEED_MOTOR_RIGHT_SLOW);
 
-  myDCMotorLeft->run(FORWARD);
-  myDCMotorRight->run(FORWARD);
+  //myDCMotorLeft->run(FORWARD);
+  //myDCMotorRight->run(FORWARD);
 
   // turn on motor
   myDCMotorLeft->run(RELEASE);
@@ -87,10 +87,10 @@ void loop() {
 /*
  * DC Motoren starten
  */
-  myDCMotorLeft->run(FORWARD);
-  myDCMotorRight->run(FORWARD);
+  myDCMotorLeft->run(RELEASE);
+  myDCMotorRight->run(RELEASE);
 
-/**
+/**1111
  * Servo Motoren starten
  */
 
