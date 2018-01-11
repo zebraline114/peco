@@ -10,7 +10,7 @@ Farbsensor::Farbsensor(){
 void Farbsensor::init(Print &print){
 
 	printer = &print; //Object for printing on Serial
-	/*printer->println("Farbsensor::init Anfang");
+	printer->println("Farbsensor::init Anfang");
 	
 
 	printer->println("Farbsensor test!");
@@ -26,8 +26,7 @@ void Farbsensor::init(Print &print){
 	}
   
 	 
-	printer->println("Farbsensor::init Ende");*/
-	printer->println("Farbsensor::init !Auskommentiert!");
+	printer->println("Farbsensor::init Ende");
 	
 }
 
@@ -36,7 +35,7 @@ unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSe
 	unsigned int uiColor = 0; //Platzhalter
 	unsigned int uiRetVal = 0;
 	
-/*	uint16_t clear, red, green, blue;						//Variablen für neue Messung zurücksetzten.
+	uint16_t clear, red, green, blue;						//Variablen für neue Messung zurücksetzten.
 
 	//tcs.setInterrupt(false);      //  LED einschalten
 
@@ -70,7 +69,7 @@ unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSe
 	   um die 10`000. Die Feinabstimmung muss natürlich noch im Roboter gemacht werden.
 	*/
 	
-	/*if(clear < 300) {						//Kein Töggel
+	if(clear < 300) {						//Kein Töggel
     uiColor = 0;							
 	}
 	if(clear > 300 && clear < 3000) {		// Grün
@@ -81,13 +80,13 @@ unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSe
 	} 
 	
 		
-	if (uiColor == 0) //keine Farbe erkannt{
+	if (uiColor == 0) /* keine Farbe erkannt*/{
 		uiRetVal = 0;
-	} else if (uiColor	 == 1) // gruen Farbe erkannt{
+	} else if (uiColor	 == 1) /* gruen Farbe erkannt*/{
 		uiRetVal = 1;
-	} else //gelbe Farbe erkannt{
+	} else /* gelbe Farbe erkannt*/{
 		uiRetVal = 2;
-	}*/	
+	}
 	
 	
 	return uiRetVal;

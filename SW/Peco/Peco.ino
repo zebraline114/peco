@@ -20,11 +20,6 @@
 #define TOEGGELI_DISTANZ_ECHO  2
 #define TOEGGELI_DISTANZ_TRIG  3
 #define TASTER_ON_OFF 4
-
-static int iDoItOnlyOnce = 0; /*Temporäre Hilfsvariable für Entwicklunszwecke*/
-static enum eMainStates mainState; /* Laufvariable für Statemachine */
-static enum eRichtungen richtung; /* Richtungen zum fahren */
-static unsigned long ulISRDriveCounterInSec = 0; /* Laufvariable für Zeit während Fahren */
 #define ENDTASTER_RECHTS 5
 #define ENDTASTER_LINKS 7
 /*PWM PINs*/
@@ -37,6 +32,11 @@ static unsigned long ulISRDriveCounterInSec = 0; /* Laufvariable für Zeit währ
 #define SPEED_MITTEL   127
 #define SPEED_LANGSAM  63
 #define SPEED_GANZLANGSAM  50
+
+static int iDoItOnlyOnce = 0; /*Temporäre Hilfsvariable für Entwicklunszwecke*/
+static enum eMainStates mainState; /* Laufvariable für Statemachine */
+static enum eRichtungen richtung; /* Richtungen zum fahren */
+static unsigned long ulISRDriveCounterInSec = 0; /* Laufvariable für Zeit während Fahren */
 static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
 
@@ -114,7 +114,7 @@ void setup() {
   mySortierServoMotor.attach(SORTIER_SERVO_OUTPUT_PIN);
   myLadeklappeServoMotor.attach(LADEKLAPPE_SERVO_OUTPUT_PIN);
   mySuchServoMotor.write(0); // SuchMotor sauber initialisiern, sonst ist Ausgansposition nicht klar
-  myLadeklappeServoMotor.write(0);
+  myLadeklappeServoMotor.write(70);
   mySortierServoMotor.write(0);
   
 
@@ -142,8 +142,7 @@ void loop() {
   boolean bEndTasterRechts;
   /*Status vom An/Aus Taster abfragen, bzw ggf toggeln*/
   //getOnOffTaster();
-  //myOnOffTaster.getTaster(&bRunning);
-  bRunning=true;
+  myOnOffTaster.getTaster(&bRunning);
   Serial.print(" bRunning: ");Serial.println(bRunning); 
 
 
@@ -253,9 +252,6 @@ static unsigned int uiSekundencounter = 0;
 
 }
 
-unsigned int fahreAblauf_temp(uint8_t p_arrayFahrablauf[][20]){
-  myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
-}
 /*
  * return Values:
  * 0: fahrenAktiv
@@ -263,7 +259,7 @@ unsigned int fahreAblauf_temp(uint8_t p_arrayFahrablauf[][20]){
  */
 unsigned int fahreAblauf(uint8_t p_arrayFahrablauf[][20]){
   
-  static unsigned int uiIndexOfp_arrayFahrablauf = 0; 
+  static unsigned int uiIndexOfp_arrayFahrablauf = 0; /**/
   unsigned long ulRichtung = 0;
   unsigned long ulStreckeOderGrad = 0; 
   unsigned long ulDriveTimeMs=0; /*Variable um Zeit für Timer zwischenzuspeichern*/
