@@ -252,6 +252,8 @@ static unsigned int uiSekundencounter = 0;
 
 }
 
+
+
 /*
  * return Values:
  * 0: fahrenAktiv

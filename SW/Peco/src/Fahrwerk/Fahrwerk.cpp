@@ -32,7 +32,7 @@ void Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed)
 	Serial.println("Fahrwerk::fahrVorwaerts");
 	// the motors shall run forward
 		// Set the speed to start, from 0 (off) to 255 (max speed)
-	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorRight->setSpeed(p_ulSpeed+20);
 	myMotorLeft->setSpeed(p_ulSpeed);
 	myMotorRight->run(FORWARD);
 	myMotorLeft->run(FORWARD);
@@ -42,7 +42,7 @@ void Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed)
 unsigned long Fahrwerk::calcWinkelToDelay(unsigned long p_winkel)
 {
 	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
-	unsigned long iRetVal = (unsigned long)(p_winkel * 98);
+	unsigned long iRetVal = (unsigned long)(p_winkel * 55);
 	Serial.print("Fahrwerk::calcWinkelToDelay  Delay: ");
 	Serial.print(iRetVal);
 	
@@ -52,7 +52,7 @@ unsigned long Fahrwerk::calcWinkelToDelay(unsigned long p_winkel)
 unsigned long Fahrwerk::calcDistanceToDelay(unsigned long p_ulDistanceInCm)
 {
 	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
-	unsigned long iRetVal = (unsigned long)(p_ulDistanceInCm * 410);
+	unsigned long iRetVal = (unsigned long)(p_ulDistanceInCm * 210);
 	
 	return iRetVal;	
 }
@@ -63,7 +63,7 @@ unsigned long Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_u
 	// the motors shall run forward
 		// Set the speed to start, from 0 (off) to 255 (max speed)
 	unsigned long lTimeInMs = calcDistanceToDelay(p_ulDistanceInCm);
-	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorRight->setSpeed(p_ulSpeed+20);
 	myMotorLeft->setSpeed(p_ulSpeed);
 	myMotorRight->run(FORWARD);
 	myMotorLeft->run(FORWARD);
@@ -77,7 +77,7 @@ unsigned long Fahrwerk::fahrRueckwaerts(unsigned long p_ulSpeed, unsigned long p
 	// the motors shall run forward
 		// Set the speed to start, from 0 (off) to 255 (max speed)
 	unsigned long lTimeInMs = calcDistanceToDelay(p_ulDistanceInCm);
-	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorRight->setSpeed(p_ulSpeed+20);
 	myMotorLeft->setSpeed(p_ulSpeed);
 	myMotorRight->run(BACKWARD);
 	myMotorLeft->run(BACKWARD);
@@ -89,7 +89,7 @@ void Fahrwerk::fahrRueckwaerts(unsigned long p_ulSpeed)
 {
 	printer->println("Fahrwerk::fahrRueckwaerts");
 	// the motors shall run backward
-	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorRight->setSpeed(p_ulSpeed+20);
 	myMotorLeft->setSpeed(p_ulSpeed);
 	myMotorRight->run(BACKWARD);
 	myMotorLeft->run(BACKWARD);
@@ -100,7 +100,7 @@ void Fahrwerk::fahrRueckwaertsRechts(unsigned long p_ulSpeed)
 {
 	printer->println("Fahrwerk::fahrRueckwaertsRechts");
 	// the right motor shall run backward
-	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorRight->setSpeed(p_ulSpeed+20);
 	myMotorRight->run(BACKWARD);
 	
 }
@@ -157,10 +157,10 @@ unsigned long  Fahrwerk::lenkeRechts(unsigned long p_ulSpeed, unsigned long p_ul
 	myMotorRight->run(RELEASE); // rechts Motor stoppen
 	myMotorLeft->run(RELEASE); // linken Motor stoppen
 	myMotorLeft->setSpeed(p_ulSpeed);
-	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorRight->setSpeed(p_ulSpeed+20);
 	
-	myMotorLeft->run(BACKWARD);
-	myMotorRight->run(FORWARD);
+	myMotorLeft->run(FORWARD);
+	myMotorRight->run(BACKWARD);
 	
 	return lTimeInMs;
 
@@ -178,10 +178,10 @@ unsigned long Fahrwerk::lenkeLinks(unsigned long p_ulSpeed, unsigned long p_ulGr
 	myMotorRight->run(RELEASE); // rechts Motor stoppen
 	myMotorLeft->run(RELEASE); // linken Motor stoppen
 	myMotorLeft->setSpeed(p_ulSpeed);
-	myMotorRight->setSpeed(p_ulSpeed);
+	myMotorRight->setSpeed(p_ulSpeed+20);
 	
-	myMotorLeft->run(FORWARD);
-	myMotorRight->run(BACKWARD);
+	myMotorLeft->run(BACKWARD);
+	myMotorRight->run(FORWARD);
 	return lTimeInMs;
 }
 
