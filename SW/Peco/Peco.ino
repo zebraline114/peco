@@ -62,8 +62,9 @@ static Taster myEndTasterLinks;
 
 
 static uint8_t ulArrayDriveCollect[20][20]= {/**/
-                                       {VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, RECHTS, VORWAERTS, STOPP },
-                                       {10,          95,     6,         45,     12,         45,     12,       45,      12,       45,      12,       45,      12,       45,      12,       45,      12,       45,      6,       0}  
+                                      //Aufwärts1         parallel2         linksabwärts3     linksabwärts4     parallel5       schrägAufwärts6     aufwärts7       schrägAufwärts8    parallel9
+                                       {VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, STOPP, 0, 0 },
+                                       {26,          85,     7,         40,     5,         40,     5,       45,      7,       45,      15,       45,      15,       45,      15,       45,      15,       0,      0,       0}  
                                      };
 static uint8_t ulArrayUnloadYellow[20][20]= {/**/
                                        {RECHTS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
