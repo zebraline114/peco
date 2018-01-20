@@ -16,12 +16,13 @@
 #define WAND_DISTANZ_SENSOR 0 //Distanzsensor ist an Analog IN Pin 0
 
 /*Digitale PINs*/
-#define SERVO_RELAIS   1
+
 #define TOEGGELI_DISTANZ_ECHO  2
 #define TOEGGELI_DISTANZ_TRIG  3
 #define TASTER_ON_OFF 4
 #define ENDTASTER_RECHTS 5
 #define ENDTASTER_LINKS 7
+#define SERVO_RELAIS   8
 /*PWM PINs*/
 #define SORTIER_SERVO_OUTPUT_PIN  9
 #define SUCH_SERVO_OUTPUT_PIN  6
@@ -61,11 +62,18 @@ static Taster myEndTasterLinks;
 
 
 
-static uint8_t ulArrayDriveCollect[20][20]= {/**/
+static uint8_t ulArrayDriveCollect1[20][20]= {/*Fahrablauf für inneren Kreis*/
+                                       //Aufwärts1         parallel2         linksabwärts3     linksabwärts4     parallel5       schrägAufwärts6     aufwärts7       schrägAufwärts8    parallel9
+                                       {VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, STOPP, 0, 0 },
+                                       {50,          95,     5,         40,     10,         53,     15,       48,      15,       48,      15,       45,      15,       45,      15,       45,      15,       0,      0,       0}  
+                                      };
+
+static uint8_t ulArrayDriveCollect2[20][20]= {/*Fahrablauf für äusseren Kreis*/
                                       //Aufwärts1         parallel2         linksabwärts3     linksabwärts4     parallel5       schrägAufwärts6     aufwärts7       schrägAufwärts8    parallel9
                                        {VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, STOPP, 0, 0 },
-                                       {26,          85,     7,         40,     5,         40,     5,       45,      7,       45,      15,       45,      15,       45,      15,       45,      15,       0,      0,       0}  
+                                       {10,          45,     14,         40,     10,         40,     10,       45,      14,       45,      30,       45,      30,       45,      30,       45,      30,       0,      0,       0}  
                                      };
+
 static uint8_t ulArrayUnloadYellow[20][20]= {/**/
                                        {RECHTS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                        {55,        0,     0,         0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
@@ -154,20 +162,31 @@ void loop() {
         Serial.println(" INIT: starte Buerstenmotor   SPEED_VOLLGAS");
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
         //sammelfahrt();
-        mainState = DRIVE_AND_COLLECT;
+        mainState = DRIVE_AND_COLLECT_1;
         break;
   
-     case DRIVE_AND_COLLECT:
+     case DRIVE_AND_COLLECT_1:
         Serial.println(" DRIVE_AND_COLLECT ");
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); /*Einschalten für den Fall, dass */
          /*sortiere*/
         sortiereToeggel();  
         //Sammelfahrt starten
-        if(1 == fahreAblauf(ulArrayDriveCollect)){
+        if(1 == fahreAblauf(ulArrayDriveCollect1)){
+          mainState = DRIVE_AND_COLLECT_2;
+        }
+        break;
+
+     case DRIVE_AND_COLLECT_2:
+        Serial.println(" DRIVE_AND_COLLECT ");
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); /*Einschalten für den Fall, dass */
+         /*sortiere*/
+        sortiereToeggel();  
+        //Sammelfahrt starten
+        if(1 == fahreAblauf(ulArrayDriveCollect2)){
           mainState = DRIVE_TO_YELLOW;
         }
-        
         break;
+
   
      case DRIVE_TO_YELLOW:
         Serial.println(" DRIVE_TO_YELLOW ");

@@ -42,7 +42,7 @@ void Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed)
 unsigned long Fahrwerk::calcWinkelToDelay(unsigned long p_winkel)
 {
 	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
-	unsigned long iRetVal = (unsigned long)(p_winkel * 55);
+	unsigned long iRetVal = (unsigned long)(p_winkel * 66);
 	Serial.print("Fahrwerk::calcWinkelToDelay  Delay: ");
 	Serial.print(iRetVal);
 	
