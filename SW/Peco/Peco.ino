@@ -153,6 +153,7 @@ void loop() {
   //getOnOffTaster();
   myOnOffTaster.getTaster(&bRunning);
   Serial.print(" bRunning: ");Serial.println(bRunning); 
+  myToeggeliDistanz.getAktuelleDistanzCm();
 
 
  if(true == bRunning){
