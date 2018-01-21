@@ -40,6 +40,7 @@ static enum eRichtungen richtung; /* Richtungen zum fahren */
 static unsigned long ulISRDriveCounterInSec = 0; /* Laufvariable für Zeit während Fahren */
 static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
 static unsigned long ulISR50ms = 0; /*Laufvariable für Stopps von Motoren zu Richungswechseln*/
+static unsigned long ulISRCollectTimeCounterInSec = 90; /* Laufvariable für Zeit während Fahren */
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
 
 static long ClosestToeggeliIndex = 0;
@@ -255,6 +256,9 @@ void loop() {
               }
             
         }
+        if ((0 == bTurnActive) && (ulISRCollectTimeCounterInSec <=0)){
+          mainState = DRIVE_TO_YELLOW;
+          }
 
      }
         break;
@@ -330,6 +334,10 @@ static unsigned int uiSekundencounter = 0;
     if(ulISRDriveCounterInSec>0){
       ulISRDriveCounterInSec--;
     }
+    if(ulISRCollectTimeCounterInSec > 0)
+    {
+      ulISRCollectTimeCounterInSec--;
+      }
     uiSekundencounter = 0;
   }else{
     uiSekundencounter++;
