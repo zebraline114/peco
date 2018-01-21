@@ -42,6 +42,12 @@ unsigned long ToeggeliDistanz::getAktuelleDistanzCm(){
 		
 				//Werte abholen
 		ulDauer = pulseIn(uiEchoInputPIN, HIGH); 
+		//Überlauf vermeiden
+		if (ulDauer > 29137.529137529) {
+			ulDauer = 29137.529137529;
+		}
+				
+		
 		ulEntfernung = (unsigned long)(((float)ulDauer/2) * 0.03432); 
 		if (ulEntfernung >= 500 || ulEntfernung <= 0) {
 			Serial.println("Toeggeli: Kein Messwert"); 

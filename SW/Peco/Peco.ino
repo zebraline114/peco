@@ -74,10 +74,18 @@ static uint8_t ulArrayDriveCollect2[20][20]= {/*Fahrablauf für äusseren Kreis*
                                        {10,          45,     14,         40,     10,         40,     10,       45,      14,       45,      30,       45,      30,       45,      30,       45,      30,       0,      0,       0}  
                                      };
 
-static uint8_t ulArrayUnloadYellow[20][20]= {/**/
-                                       {RECHTS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                                       {55,        0,     0,         0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
+
+static uint8_t ulArrayDriveCollect_Distance[20][20]= {/**/
+                                       {RECHTS, VORWAERTS, VORWAERTS, VORWAERTS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                                       {55,        40,     40,         40,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
                                      };
+
+static uint8_t ulArrayUnloadYellow[20][20]= {/**/
+                                       {LINKS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                                       {30,        0,     0,         0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
+                                     };
+
+
 static uint8_t ulArrayUnloadGreen[20][20]= {/**/
                                        {LINKS, VORWAERTS, LINKS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                        {10,          70,    140,    0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
@@ -153,7 +161,7 @@ void loop() {
   //getOnOffTaster();
   myOnOffTaster.getTaster(&bRunning);
   Serial.print(" bRunning: ");Serial.println(bRunning); 
-  myToeggeliDistanz.getAktuelleDistanzCm();
+
 
 
  if(true == bRunning){
@@ -162,15 +170,16 @@ void loop() {
       case INIT:
         Serial.println(" INIT: starte Buerstenmotor   SPEED_VOLLGAS");
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-        //sammelfahrt();
-        mainState = DRIVE_AND_COLLECT_1;
+        sortiereToeggel(); 
+        myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
+        mainState = DRIVE_AND_COLLECT_DISTANCE_INIT;
         break;
   
-     case DRIVE_AND_COLLECT_1:
+    /* case DRIVE_AND_COLLECT_1:
         Serial.println(" DRIVE_AND_COLLECT ");
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); /*Einschalten für den Fall, dass */
          /*sortiere*/
-        sortiereToeggel();  
+      /*  sortiereToeggel();  
         //Sammelfahrt starten
         if(1 == fahreAblauf(ulArrayDriveCollect1)){
           mainState = DRIVE_AND_COLLECT_2;
@@ -181,11 +190,70 @@ void loop() {
         Serial.println(" DRIVE_AND_COLLECT ");
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); /*Einschalten für den Fall, dass */
          /*sortiere*/
-        sortiereToeggel();  
+   /*     sortiereToeggel();  
         //Sammelfahrt starten
         if(1 == fahreAblauf(ulArrayDriveCollect2)){
           mainState = DRIVE_TO_YELLOW;
         }
+        break;*/
+
+     case DRIVE_AND_COLLECT_DISTANCE_INIT:
+        Serial.println(" DRIVE_AND_COLLECT_DISTANCE_INIT ");
+         /*sortiere*/
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        sortiereToeggel();  
+
+        //Wenn zu nahe an Wand, dann abdrehen
+        if((myToeggeliDistanz.getAktuelleDistanzCm()) < 10  ){ 
+          myFahrwerk.stopp();
+          mainState = DRIVE_AND_COLLECT_DISTANCE;
+        }
+
+        break;
+        
+     case DRIVE_AND_COLLECT_DISTANCE:{
+      static boolean bTurnActive = 0;
+        static uint8_t u8TurnState = 0;
+         /*sortiere*/
+        sortiereToeggel(); 
+        Serial.print(" DRIVE_AND_COLLECT_DISTANCE:  u8TurnState");  Serial.print(u8TurnState); 
+        Serial.print(" ulISRDriveCounterInSec");  Serial.println(ulISRDriveCounterInSec); 
+
+        //Wenn zu nahe an Wand, dann abdrehen
+        if((myToeggeliDistanz.getAktuelleDistanzCm()) < 10 && (bTurnActive == 0)){ //Hindernis erkannt && Drehung momentan nicht aktiv, dann Drehung initialisieren
+
+              bTurnActive = 1; //Flag für Drehung ist aktiv
+              u8TurnState = 0; //State für switch startet bei 0
+              ulISRDriveCounterInSec = 1; //50ms Stopp zum Hbrückenschutz
+              myFahrwerk.stopp();
+        }
+        if (bTurnActive == 1){
+            switch(u8TurnState) {
+              case 0: // Warten bis Stopp vorbei und Drehung einleiten
+                if(ulISRDriveCounterInSec == 0){
+                    unsigned long ulDriveTimeMs = myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 30);
+                    ulISRDriveCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000); 
+                    u8TurnState = 1;
+                  }
+                break;
+              case 1: //Warten bis Drehung vorbei und Stopp einleiten
+                if(0 == ulISRDriveCounterInSec){
+                    ulISRDriveCounterInSec = 1; //50ms Stopp zum Hbrückenschutz
+                    myFahrwerk.stopp();
+                    u8TurnState = 2;
+                  }                
+                break;
+              case 2:// Warten bis Stopp vorbei und wieder vorwärts fahren einleiten
+                if(0 == ulISRDriveCounterInSec){
+                    myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
+                    bTurnActive = 0;
+                  }
+                break;
+              }
+            
+        }
+
+     }
         break;
 
   
@@ -293,6 +361,108 @@ unsigned int fahreAblauf(uint8_t p_arrayFahrablauf[][20]){
   uiRetVal = 0;
   /*Wenn gerade nicht gefahren wird, */
   unsigned int uiLengthOfp_arrayFahrablauf = 0;
+  
+  uiLengthOfp_arrayFahrablauf = sizeof(p_arrayFahrablauf[0]) / sizeof(p_arrayFahrablauf[0][0]);
+  Serial.print(" uiLengthOfp_arrayFahrablauf =");Serial.println(uiLengthOfp_arrayFahrablauf); 
+  if((ulISRDriveCounterInSec == 0) && (bHBrueckenSchutz == 0)){
+    ulHBrueckenSchutzCounter = millis(); //Zähler "aufziehen"
+    myFahrwerk.stopp();
+    bHBrueckenSchutz = 1;
+    Serial.println("H Brueckenschutz aktiv"); 
+    
+    }
+  
+  if((uiIndexOfp_arrayFahrablauf < uiLengthOfp_arrayFahrablauf) //weiteres Element in Array vorhanden
+        && (ulISRDriveCounterInSec == 0) // Zeit vom Fahrablauf ist abgelaufen
+        && ((millis() - ulHBrueckenSchutzCounter ) > ulHBrueckenSchutzZeit) ){ //Zeit vom Hbrückenschutz ist abgelaufen
+    ulRichtung = p_arrayFahrablauf[0][uiIndexOfp_arrayFahrablauf];
+    ulStreckeOderGrad = p_arrayFahrablauf[1][uiIndexOfp_arrayFahrablauf];  
+    Serial.print(" uiIndexOfp_arrayFahrablauf ="); Serial.println(uiIndexOfp_arrayFahrablauf); 
+    Serial.print(" ulRichtung ="); Serial.println(ulRichtung);    
+    Serial.print(" ulStreckeOderGrad ="); Serial.println(ulStreckeOderGrad);    
+    bHBrueckenSchutz = 0;
+
+    
+    switch(ulRichtung){
+      case VORWAERTS:
+          ulDriveTimeMs = myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM, ulStreckeOderGrad);
+          ulISRDriveCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          Serial.println(" VORWAERTS ");
+          Serial.print(" sammelfahrt: ulISRDriveCounterInSec = ");
+          Serial.println(ulISRDriveCounterInSec);       
+          uiIndexOfp_arrayFahrablauf++;
+          
+      break;
+
+      case RECHTS:
+          ulDriveTimeMs = myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, ulStreckeOderGrad);
+          ulISRDriveCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          uiIndexOfp_arrayFahrablauf++;
+          Serial.println(" RECHTS ");
+          Serial.print(" sammelfahrt: ulISRDriveCounterInSec = ");
+          Serial.println(ulISRDriveCounterInSec);   
+      break;
+            
+      case LINKS:
+          ulDriveTimeMs = myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, ulStreckeOderGrad);
+          ulISRDriveCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          uiIndexOfp_arrayFahrablauf++;
+      break;
+        
+      case RUECKWAERTS:
+          ulDriveTimeMs = myFahrwerk.fahrRueckwaerts(SPEED_GANZLANGSAM, ulStreckeOderGrad);
+          ulISRDriveCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000);
+          Serial.println(" RUECKWAERTS ");
+          Serial.print(" sammelfahrt: ulISRDriveCounterInSec = ");
+          Serial.println(ulISRDriveCounterInSec);       
+          uiIndexOfp_arrayFahrablauf++;
+      break;
+      
+      case STOPP:
+          myFahrwerk.stopp();
+          uiIndexOfp_arrayFahrablauf = 0;
+          uiRetVal = 1; /*Fahren nicht aktiv*/
+      break;
+      default:
+          myFahrwerk.stopp();
+          uiIndexOfp_arrayFahrablauf = 0;
+          uiRetVal = 1; /*Fahren nicht aktiv*/
+      }
+    
+    
+    
+    }else if((uiIndexOfp_arrayFahrablauf >= uiLengthOfp_arrayFahrablauf)&& (ulISRDriveCounterInSec == 0)){
+          myFahrwerk.stopp();
+          uiIndexOfp_arrayFahrablauf = 0;
+          ulISRDriveCounterInSec = 0;
+          uiRetVal = 1; /*Fahren nicht aktiv*/
+    }
+  
+    
+  return uiRetVal;
+  
+}
+
+unsigned int fahreAblaufAufDistanz(uint8_t p_arrayFahrablauf[][20], unsigned int p_resetArray){
+  
+  static unsigned int uiIndexOfp_arrayFahrablauf = 0; /**/
+  unsigned long ulRichtung = 0;
+  unsigned long ulStreckeOderGrad = 0; 
+  unsigned long ulDriveTimeMs=0; /*Variable um Zeit für Timer zwischenzuspeichern*/
+  unsigned int uiRetVal;
+  unsigned long ulHBrueckenSchutzZeit = 50; //50ms Motor auf Stopp halten
+  static unsigned long ulHBrueckenSchutzCounter; //50ms Motor auf Stopp halten
+  static boolean bHBrueckenSchutz = 0;
+  uiRetVal = 0;
+  /*Wenn gerade nicht gefahren wird, */
+  unsigned int uiLengthOfp_arrayFahrablauf = 0;
+
+  if(p_resetArray == 1){
+    uiIndexOfp_arrayFahrablauf = 0;
+    ulISRDriveCounterInSec = 0;
+    ulISRDriveCounterInSec = millis();
+   }
+  
   
   uiLengthOfp_arrayFahrablauf = sizeof(p_arrayFahrablauf[0]) / sizeof(p_arrayFahrablauf[0][0]);
   Serial.print(" uiLengthOfp_arrayFahrablauf =");Serial.println(uiLengthOfp_arrayFahrablauf); 
