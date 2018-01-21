@@ -39,6 +39,7 @@ static enum eMainStates mainState; /* Laufvariable für Statemachine */
 static enum eRichtungen richtung; /* Richtungen zum fahren */
 static unsigned long ulISRDriveCounterInSec = 0; /* Laufvariable für Zeit während Fahren */
 static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
+static unsigned long ulISR50ms = 0; /*Laufvariable für Stopps von Motoren zu Richungswechseln*/
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
 
 static long ClosestToeggeliIndex = 0;
@@ -224,13 +225,14 @@ void loop() {
 
               bTurnActive = 1; //Flag für Drehung ist aktiv
               u8TurnState = 0; //State für switch startet bei 0
-              ulISRDriveCounterInSec = 1; //50ms Stopp zum Hbrückenschutz
+              ulISR50ms = 1;
+              //ulISRDriveCounterInSec = 1; //50ms Stopp zum Halbbrückenschutz
               myFahrwerk.stopp();
         }
         if (bTurnActive == 1){
             switch(u8TurnState) {
               case 0: // Warten bis Stopp vorbei und Drehung einleiten
-                if(ulISRDriveCounterInSec == 0){
+                if(ulISR50ms == 0){
                     unsigned long ulDriveTimeMs = myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 30);
                     ulISRDriveCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000); 
                     u8TurnState = 1;
@@ -238,13 +240,14 @@ void loop() {
                 break;
               case 1: //Warten bis Drehung vorbei und Stopp einleiten
                 if(0 == ulISRDriveCounterInSec){
-                    ulISRDriveCounterInSec = 1; //50ms Stopp zum Hbrückenschutz
+                    //ulISRDriveCounterInSec = 1; //50ms Stopp zum Hbrückenschutz
+                    ulISR50ms = 1; //50ms Stopp zum Hbrückenschutz
                     myFahrwerk.stopp();
                     u8TurnState = 2;
                   }                
                 break;
               case 2:// Warten bis Stopp vorbei und wieder vorwärts fahren einleiten
-                if(0 == ulISRDriveCounterInSec){
+                if(0 == ulISR50ms){
                     myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
                     bTurnActive = 0;
                   }
@@ -337,7 +340,9 @@ static unsigned int uiSekundencounter = 0;
     ulISRcolorMeasureCounterInSec--;
     }
     //digitalWrite(13, digitalRead(13) ^ 1); /*Temporär um zu sehen ob ISR ausgeführt wird*/
-  
+  if(ulISR50ms>=1){
+    ulISR50ms --;
+    }
 
 }
 
