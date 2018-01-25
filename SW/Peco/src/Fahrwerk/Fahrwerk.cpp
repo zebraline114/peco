@@ -29,7 +29,7 @@ void Fahrwerk::init(Print &print){
 
 void Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed)
 {
-	Serial.println("Fahrwerk::fahrVorwaerts");
+	printer->println("Fahrwerk::fahrVorwaerts");
 	// the motors shall run forward
 		// Set the speed to start, from 0 (off) to 255 (max speed)
 	myMotorRight->setSpeed(p_ulSpeed+20);
@@ -43,8 +43,8 @@ unsigned long Fahrwerk::calcWinkelToDelay(unsigned long p_winkel)
 {
 	/*Formelherleitung siehe Schnittestelle_SuchServo_Fahrwerk.xlsx*/
 	unsigned long iRetVal = (unsigned long)(p_winkel * 66);
-	Serial.print("Fahrwerk::calcWinkelToDelay  Delay: ");
-	Serial.print(iRetVal);
+	printer->print("Fahrwerk::calcWinkelToDelay  Delay: ");
+	printer->println(iRetVal);
 	
 	return iRetVal;	
 }
@@ -59,7 +59,7 @@ unsigned long Fahrwerk::calcDistanceToDelay(unsigned long p_ulDistanceInCm)
 
 unsigned long Fahrwerk::fahrVorwaerts(unsigned long p_ulSpeed, unsigned long p_ulDistanceInCm)
 {
-	Serial.println("Fahrwerk::fahrVorwaerts");
+	printer->println("Fahrwerk::fahrVorwaerts");
 	// the motors shall run forward
 		// Set the speed to start, from 0 (off) to 255 (max speed)
 	unsigned long lTimeInMs = calcDistanceToDelay(p_ulDistanceInCm);
@@ -147,9 +147,9 @@ void Fahrwerk::stopp()
 
 unsigned long  Fahrwerk::lenkeRechts(unsigned long p_ulSpeed, unsigned long p_ulGrad)
 {
-	Serial.println("Fahrwerk::lenkeRechts");
-	Serial.print(p_ulGrad);
-	Serial.print(" Grad");
+	printer->print("Fahrwerk::lenkeRechts");
+	printer->print(p_ulGrad);
+	printer->println(" Grad");
 	
 	unsigned long lTimeInMs = calcWinkelToDelay(p_ulGrad);
 	
@@ -169,9 +169,9 @@ unsigned long  Fahrwerk::lenkeRechts(unsigned long p_ulSpeed, unsigned long p_ul
 
 unsigned long Fahrwerk::lenkeLinks(unsigned long p_ulSpeed, unsigned long p_ulGrad)
 {
-	Serial.println("Fahrwerk::lenkeRechts");
-	Serial.print(p_ulGrad);
-	Serial.print(" Grad");
+	printer->print("Fahrwerk::lenkeRechts");
+	printer->print(p_ulGrad);
+	printer->println(" Grad");
 	
 	unsigned long lTimeInMs = calcWinkelToDelay(p_ulGrad);
 	
