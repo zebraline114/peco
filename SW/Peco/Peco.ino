@@ -42,6 +42,7 @@ static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zu
 static unsigned long ulISR50ms = 0; /*Laufvariable für Stopps von Motoren zu Richungswechseln*/
 static unsigned long ulISRCollectTimeCounterInSec = 90; /* Laufvariable für Zeit während Fahren */
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
+static unsigned int uiActPosLadeServo = 55;
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
@@ -133,14 +134,15 @@ void setup() {
   mySortierServoMotor.attach(SORTIER_SERVO_OUTPUT_PIN);
   myLadeklappeServoMotor.attach(LADEKLAPPE_SERVO_OUTPUT_PIN);
   mySuchServoMotor.write(0); // SuchMotor sauber initialisiern, sonst ist Ausgansposition nicht klar
-  myLadeklappeServoMotor.write(70);
+  myLadeklappeServoMotor.write(55);
+  delay(100);
   mySortierServoMotor.write(0);
   
 
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
-  mainState = INIT;
-  //mainState = DRIVE_TO_YELLOW;
+  //mainState = INIT;
+  mainState = UNLOAD_YELLOW;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
@@ -281,7 +283,7 @@ void loop() {
         /*sortiere*/
         sortiereToeggel();
         /*Fahren bis Endschalter auslösen*/
-        if(1 == abladen(40)){
+        if(1 == abladen(115)){
            mainState = DRIVE_TO_GREEN;       
         }
         break;
@@ -303,7 +305,7 @@ void loop() {
         /*sortiere*/
         sortiereToeggel();
         /*Fahren bis Endschalter auslösen*/
-        if(1 == abladen(20)){
+        if(1 == abladen(5)){
            mainState = END;       
         }
         break;
@@ -614,9 +616,45 @@ boolean abladen(unsigned int p_uiServoStellungInGrad){
         myFahrwerk.fahrRueckwaertsLinks(SPEED_GANZLANGSAM);
     }
     if((1 == bEndTasterRechts) && (1 == bEndTasterLinks)){
-      myLadeklappeServoMotor.write(p_uiServoStellungInGrad);
-      delay(1000); /*ToDo: ersetzen durch Timer3 Anbindung*/              
+      smoothAbladeServo(p_uiServoStellungInGrad);              
       bRetVal = 1;
       }
     return bRetVal;
+}
+
+//========Funktion fährt Abladeservo an Zielposition und zurück zu Ausgangsposition
+
+void smoothAbladeServo (unsigned int uiCmdPosLadeServo){ 
+  unsigned int uiStartPosLadeServo = uiActPosLadeServo; // Ausgangsposition zwischenspeichern 
+  if (uiCmdPosLadeServo > uiActPosLadeServo){
+   
+      while (uiCmdPosLadeServo >= uiActPosLadeServo){
+        uiActPosLadeServo++;
+        myLadeklappeServoMotor.write(uiActPosLadeServo);
+      delay(50);      
+    }
+    delay(2000);
+      while (uiActPosLadeServo >= uiStartPosLadeServo){
+        uiActPosLadeServo--;
+        myLadeklappeServoMotor.write(uiActPosLadeServo);
+      delay(50);      
+    }
+  }
+
+    if (uiCmdPosLadeServo < uiActPosLadeServo){
+   
+      while (uiCmdPosLadeServo <= uiActPosLadeServo){
+        uiActPosLadeServo--;
+        myLadeklappeServoMotor.write(uiActPosLadeServo);
+      delay(50);      
+    }
+    delay(2000);
+      while (uiActPosLadeServo <= uiStartPosLadeServo){
+        uiActPosLadeServo++;
+        myLadeklappeServoMotor.write(uiActPosLadeServo);
+      delay(50);      
+    }
+  }
+
+  
 }
