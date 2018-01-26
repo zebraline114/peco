@@ -42,7 +42,7 @@ static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zu
 static unsigned long ulISR50ms = 0; /*Laufvariable für Stopps von Motoren zu Richungswechseln*/
 static unsigned long ulISRCollectTimeCounterInSec = 90; /* Laufvariable für Zeit während Fahren */
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
-static unsigned int uiActPosLadeServo = 55;
+static unsigned int uiActPosLadeServo = 70;
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
@@ -134,15 +134,15 @@ void setup() {
   mySortierServoMotor.attach(SORTIER_SERVO_OUTPUT_PIN);
   myLadeklappeServoMotor.attach(LADEKLAPPE_SERVO_OUTPUT_PIN);
   mySuchServoMotor.write(0); // SuchMotor sauber initialisiern, sonst ist Ausgansposition nicht klar
-  myLadeklappeServoMotor.write(55);
+  myLadeklappeServoMotor.write(uiActPosLadeServo);
   delay(100);
   mySortierServoMotor.write(0);
   
 
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
-  //mainState = INIT;
-  mainState = UNLOAD_YELLOW;
+  mainState = INIT;
+  //mainState = UNLOAD_YELLOW;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
@@ -283,7 +283,7 @@ void loop() {
         /*sortiere*/
         sortiereToeggel();
         /*Fahren bis Endschalter auslösen*/
-        if(1 == abladen(115)){
+        if(1 == abladen(116)){
            mainState = DRIVE_TO_GREEN;       
         }
         break;
@@ -305,7 +305,7 @@ void loop() {
         /*sortiere*/
         sortiereToeggel();
         /*Fahren bis Endschalter auslösen*/
-        if(1 == abladen(5)){
+        if(1 == abladen(1)){
            mainState = END;       
         }
         break;
