@@ -566,14 +566,15 @@ unsigned int fahreAblaufAufDistanz(uint8_t p_arrayFahrablauf[][20], unsigned int
 */
 void sortiereToeggel(void){
     static unsigned int uiColor = 0;
-    unsigned long ulDelay = 500; 
+    static unsigned int uiOldColor = 0;
+    unsigned long ulDelay = 550; 
     static unsigned long ulDelayCounter = 0;
 
     if((millis()-ulDelayCounter) > ulDelay){ //nur alle 500ms neue Werte abholen um Zeit von Erkennung zum Servo zu verlängern
       
         uiColor = myFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
         Serial.print(" myFabsensor.getColor : "); Serial.println(uiColor);
-        switch(uiColor){
+        switch(uiOldColor){
           case 0:
             // Wenn kein Toeggel erkannt wurde, lass alles so wie es ist
             break;
@@ -592,6 +593,7 @@ void sortiereToeggel(void){
           break;
             }
         ulDelayCounter = millis();
+        uiOldColor = uiColor;
     }
 }
 
