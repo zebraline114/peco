@@ -142,7 +142,7 @@ void setup() {
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
   mainState = INIT;
-  //mainState = UNLOAD_YELLOW;
+  mainState = UNLOAD_YELLOW;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
@@ -160,9 +160,9 @@ void setup() {
 */
 
 void loop() {
-  boolean bEndTasterRechts;
+
   /*Status vom An/Aus Taster abfragen, bzw ggf toggeln*/
-  //getOnOffTaster();
+
   myOnOffTaster.getTaster(&bRunning);
   Serial.print(" bRunning: ");Serial.println(bRunning); 
 
@@ -599,8 +599,8 @@ void sortiereToeggel(void){
 
 /*Rückwärts fahren bis beide Endschalter auslösen*/
 boolean abladen(unsigned int p_uiServoStellungInGrad){
-    boolean bEndTasterRechts; /*Anschlag für Rückwärtsfahren rechts*/
-    boolean bEndTasterLinks; /*Anschlag für Rückwärtsfahren links*/
+    static boolean bEndTasterRechts; /*Anschlag für Rückwärtsfahren rechts*/
+    static boolean bEndTasterLinks; /*Anschlag für Rückwärtsfahren links*/
     boolean bRetVal = 0;
     bEndTasterRechts = myEndTasterRechts.getTaster();
     Serial.print(" bEndTasterRechts: ");Serial.println(bEndTasterRechts);  

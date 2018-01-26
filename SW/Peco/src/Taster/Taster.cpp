@@ -51,19 +51,27 @@ uint8_t Taster::getTaster(){
   uint8_t u8EntprellZeit = 50;
   static unsigned long ulLetzteMessung = 0;
   static uint8_t tasterStatus = 0;
+  uint8_t tasterActStatus = 0;
+  tasterActStatus = digitalRead(u8InputPin);
+  
+  //printer->print("Taster::getTaster() vor Entprellung::u8InputPin ");digitalRead(u8InputPin);
+  printer->print("Taster::getTaster() vor Entprellung::u8InputPin ");printer->print(tasterActStatus); //tut nicht wenn ich diese Zeile auskommentiere
   
   if (ulLetzteMessung == 0) // nur nach der Initialisierung
   {
-	ulLetzteMessung = millis(); 
+	ulLetzteMessung = millis();
+    tasterStatus = tasterActStatus;	
   }
+  
   
   else if((millis() - ulLetzteMessung)>u8EntprellZeit){
 	// Immern nach Entprellzeit neuen Wert abholen
-	tasterStatus = digitalRead(u8InputPin);
+	tasterStatus = tasterActStatus;
 	ulLetzteMessung = millis();
 		
   }
   //  printer->print("Taster::getTaster()::u8InputPin ");printer->print(u8InputPin);  
+  //  printer->println("Taster::getTaster() NACH Entprellung::u8InputPin ");printer->print(u8InputPin);
 
   return tasterStatus;
 	
