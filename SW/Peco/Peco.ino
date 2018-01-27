@@ -142,7 +142,7 @@ void setup() {
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
   mainState = INIT;
-  mainState = UNLOAD_YELLOW;
+  //mainState = UNLOAD_YELLOW;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
@@ -176,25 +176,24 @@ void loop() {
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
         sortiereToeggel(); 
         myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
-        mainState = DRIVE_AND_COLLECT_DISTANCE_INIT;
+        mainState = DRIVE_AND_COLLECT_1;
         break;
   
-    /* case DRIVE_AND_COLLECT_1:
+     case DRIVE_AND_COLLECT_1:
         Serial.println(" DRIVE_AND_COLLECT ");
-        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); /*Einschalten für den Fall, dass */
-         /*sortiere*/
-      /*  sortiereToeggel();  
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); 
+ 
+        sortiereToeggel();  
         //Sammelfahrt starten
         if(1 == fahreAblauf(ulArrayDriveCollect1)){
-          mainState = DRIVE_AND_COLLECT_2;
+          mainState = DRIVE_AND_COLLECT_DISTANCE_INIT;
         }
         break;
 
-     case DRIVE_AND_COLLECT_2:
+   /*  case DRIVE_AND_COLLECT_2:
         Serial.println(" DRIVE_AND_COLLECT ");
-        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); /*Einschalten für den Fall, dass */
-         /*sortiere*/
-   /*     sortiereToeggel();  
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); 
+        sortiereToeggel();  
         //Sammelfahrt starten
         if(1 == fahreAblauf(ulArrayDriveCollect2)){
           mainState = DRIVE_TO_YELLOW;
@@ -203,9 +202,9 @@ void loop() {
 
      case DRIVE_AND_COLLECT_DISTANCE_INIT:
         Serial.println(" DRIVE_AND_COLLECT_DISTANCE_INIT ");
-         /*sortiere*/
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
         sortiereToeggel();  
+        myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
 
         //Wenn zu nahe an Wand, dann abdrehen
         if((myToeggeliDistanz.getAktuelleDistanzCm()) < 10  ){ 
@@ -218,7 +217,6 @@ void loop() {
      case DRIVE_AND_COLLECT_DISTANCE:{
       static boolean bTurnActive = 0;
         static uint8_t u8TurnState = 0;
-         /*sortiere*/
         sortiereToeggel(); 
         Serial.print(" DRIVE_AND_COLLECT_DISTANCE:  u8TurnState");  Serial.print(u8TurnState); 
         Serial.print(" ulISRDriveCounterInSec");  Serial.println(ulISRDriveCounterInSec); 
@@ -269,7 +267,6 @@ void loop() {
      case DRIVE_TO_YELLOW:
         Serial.println(" DRIVE_TO_YELLOW ");
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-        /*sortiere*/
         sortiereToeggel();
         if(1 == fahreAblauf(ulArrayUnloadYellow)){     
           mainState = UNLOAD_YELLOW;
@@ -280,7 +277,6 @@ void loop() {
      case UNLOAD_YELLOW:
         Serial.println(" UNLOAD_YELLOW ");
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-        /*sortiere*/
         sortiereToeggel();
         /*Fahren bis Endschalter auslösen*/
         if(1 == abladen(116)){
