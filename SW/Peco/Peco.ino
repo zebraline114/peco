@@ -40,7 +40,7 @@ static enum eRichtungen richtung; /* Richtungen zum fahren */
 static unsigned long ulISRDriveCounterInSec = 0; /* Laufvariable für Zeit während Fahren */
 static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
 static unsigned long ulISR50ms = 0; /*Laufvariable für Stopps von Motoren zu Richungswechseln*/
-static unsigned long ulISRCollectTimeCounterInSec = 90; /* Laufvariable für Zeit während Fahren */
+static unsigned long ulISRCollectTimeCounterInSec = 180; /* Laufvariable für Zeit während Fahren in Sekunden */
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
 static unsigned int uiActPosLadeServo = 70;
 
@@ -67,15 +67,15 @@ static Taster myEndTasterLinks;
 
 static uint8_t ulArrayDriveCollect1[20][20]= {/*Fahrablauf für inneren Kreis*/
                                        //Aufwärts1         parallel2         linksabwärts3     linksabwärts4     parallel5       schrägAufwärts6     aufwärts7       schrägAufwärts8    parallel9
-                                       {VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, STOPP, 0, 0 },
-                                       {50,          95,     5,         40,     10,         53,     15,       48,      15,       48,      15,       45,      15,       45,      15,       45,      15,       0,      0,       0}  
+                                       {VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, STOPP, 0, 0, 0, 0, 0 },
+                                       {25,          65,     10,         40,     10,         53,     15,       48,      15,       48,      15,       45,      15,       0,      0,       0,      0,       0,      0,       0}  
                                       };
 
-static uint8_t ulArrayDriveCollect2[20][20]= {/*Fahrablauf für äusseren Kreis*/
+/*static uint8_t ulArrayDriveCollect2[20][20]= {//Fahrablauf für äusseren Kreis
                                       //Aufwärts1         parallel2         linksabwärts3     linksabwärts4     parallel5       schrägAufwärts6     aufwärts7       schrägAufwärts8    parallel9
                                        {VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, STOPP, 0, 0 },
                                        {10,          45,     14,         40,     10,         40,     10,       45,      14,       45,      30,       45,      30,       45,      30,       45,      30,       0,      0,       0}  
-                                     };
+                                     };*/
 
 
 static uint8_t ulArrayDriveCollect_Distance[20][20]= {/**/
@@ -222,7 +222,7 @@ void loop() {
         Serial.print(" ulISRDriveCounterInSec");  Serial.println(ulISRDriveCounterInSec); 
 
         //Wenn zu nahe an Wand, dann abdrehen
-        if((myToeggeliDistanz.getAktuelleDistanzCm()) < 10 && (bTurnActive == 0)){ //Hindernis erkannt && Drehung momentan nicht aktiv, dann Drehung initialisieren
+        if((myToeggeliDistanz.getAktuelleDistanzCm()) < 11 && (bTurnActive == 0)){ //Hindernis erkannt && Drehung momentan nicht aktiv, dann Drehung initialisieren
 
               bTurnActive = 1; //Flag für Drehung ist aktiv
               u8TurnState = 0; //State für switch startet bei 0
