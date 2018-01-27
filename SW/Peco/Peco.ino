@@ -28,6 +28,11 @@
 #define SUCH_SERVO_OUTPUT_PIN  6
 #define LADEKLAPPE_SERVO_OUTPUT_PIN 10
 
+//=====Analoge PINS========
+const int AnalogPinPotiX=5;
+const int AnalogPinPotiY=4;
+
+
 //==== Geschwindigkeiten für Fahrwerk
 #define SPEED_VOLLGAS 255
 #define SPEED_MITTEL   127
@@ -43,6 +48,8 @@ static unsigned long ulISR50ms = 0; /*Laufvariable für Stopps von Motoren zu Ri
 static unsigned long ulISRCollectTimeCounterInSec = 180; /* Laufvariable für Zeit während Fahren in Sekunden */
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
 static unsigned int uiActPosLadeServo = 70;
+static  int iAIdistSensorXRef = 350;
+static  int iAIdistSensorYRef = 350;
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
@@ -65,17 +72,17 @@ static Taster myEndTasterLinks;
 
 
 
+
 static uint8_t ulArrayDriveCollect1[20][20]= {/*Fahrablauf für inneren Kreis*/
                                        //Aufwärts1         parallel2         linksabwärts3     linksabwärts4     parallel5       schrägAufwärts6     aufwärts7       schrägAufwärts8    parallel9
                                        {VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, STOPP, 0, 0, 0, 0, 0 },
                                        {25,          65,     10,         40,     10,         53,     15,       48,      15,       48,      15,       45,      15,       0,      0,       0,      0,       0,      0,       0}  
                                       };
 
-/*static uint8_t ulArrayDriveCollect2[20][20]= {//Fahrablauf für äusseren Kreis
-                                      //Aufwärts1         parallel2         linksabwärts3     linksabwärts4     parallel5       schrägAufwärts6     aufwärts7       schrägAufwärts8    parallel9
-                                       {VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, LINKS, VORWAERTS, STOPP, 0, 0 },
-                                       {10,          45,     14,         40,     10,         40,     10,       45,      14,       45,      30,       45,      30,       45,      30,       45,      30,       0,      0,       0}  
-                                     };*/
+static uint8_t ulArrayDriveCollect2[20][20]= {/*Fahrablauf für äusseren Kreis*/
+                                       {LINKS, VORWAERTS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                                       {155,        30,     0,         0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
+                                     };
 
 
 static uint8_t ulArrayDriveCollect_Distance[20][20]= {/**/
@@ -85,13 +92,13 @@ static uint8_t ulArrayDriveCollect_Distance[20][20]= {/**/
 
 static uint8_t ulArrayUnloadYellow[20][20]= {/**/
                                        {LINKS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                                       {30,        0,     0,         0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
+                                       {85,        0,     0,         0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
                                      };
 
 
 static uint8_t ulArrayUnloadGreen[20][20]= {/**/
-                                       {LINKS, VORWAERTS, LINKS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                                       {10,          70,    140,    0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
+                                       {RECHTS, VORWAERTS, LINKS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                                       {45,          70,    140,    0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
                                      };    
 /**
  * Funktionen
@@ -143,6 +150,7 @@ void setup() {
 
   mainState = INIT;
   //mainState = UNLOAD_YELLOW;
+  //mainState = DRIVE_TO_MIDDLE;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
@@ -165,6 +173,7 @@ void loop() {
 
   myOnOffTaster.getTaster(&bRunning);
   Serial.print(" bRunning: ");Serial.println(bRunning); 
+  printPotiValues();
 
 
 
@@ -173,6 +182,8 @@ void loop() {
     {
       case INIT:
         Serial.println(" INIT: starte Buerstenmotor   SPEED_VOLLGAS");
+        iAIdistSensorXRef = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
+        iAIdistSensorYRef = analogRead(AnalogPinPotiY);  //Read analog in Value Y Axi
         myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
         sortiereToeggel(); 
         myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
@@ -190,15 +201,6 @@ void loop() {
         }
         break;
 
-   /*  case DRIVE_AND_COLLECT_2:
-        Serial.println(" DRIVE_AND_COLLECT ");
-        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); 
-        sortiereToeggel();  
-        //Sammelfahrt starten
-        if(1 == fahreAblauf(ulArrayDriveCollect2)){
-          mainState = DRIVE_TO_YELLOW;
-        }
-        break;*/
 
      case DRIVE_AND_COLLECT_DISTANCE_INIT:
         Serial.println(" DRIVE_AND_COLLECT_DISTANCE_INIT ");
@@ -207,7 +209,7 @@ void loop() {
         myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
 
         //Wenn zu nahe an Wand, dann abdrehen
-        if((myToeggeliDistanz.getAktuelleDistanzCm()) < 10  ){ 
+        if((myToeggeliDistanz.getAktuelleDistanzCm()) < 16  ){ 
           myFahrwerk.stopp();
           mainState = DRIVE_AND_COLLECT_DISTANCE;
         }
@@ -257,12 +259,65 @@ void loop() {
             
         }
         if ((0 == bTurnActive) && (ulISRCollectTimeCounterInSec <=0)){
-          mainState = DRIVE_TO_YELLOW;
+          mainState = DRIVE_TO_MIDDLE;
           }
 
      }
         break;
 
+    case DRIVE_TO_MIDDLE:
+      Serial.println(" DRIVE_TO_MIDDLE ");
+      myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+      sortiereToeggel();
+      if(1 == fahreAblauf(ulArrayDriveCollect2)){ 
+        mainState = FIND_TOP;
+       }  
+      break;
+      
+    case FIND_TOP:
+      Serial.println(" FIND_TOP ");
+      myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+      sortiereToeggel();
+      {
+         myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 360);
+        //PotiDistanzmesser abfragen
+        int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
+        int iAIdistSensorY = analogRead(AnalogPinPotiY);  //Read analog in Value Y Axis
+
+        float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
+        float fVoltageY = (float)iAIdistSensorY * 0.0048828125f;
+
+        Serial.print("X Axis Raw value ");
+        Serial.print(iAIdistSensorX);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageX);
+        Serial.print("V");
+
+        Serial.print("     Y Axis Raw value ");
+        Serial.print(iAIdistSensorY);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageY);
+        Serial.println  ("V");
+        
+        if((iAIdistSensorX >= (iAIdistSensorXRef-5)) &&(iAIdistSensorX <= (iAIdistSensorXRef+5))  
+          &&  (iAIdistSensorY >= (iAIdistSensorYRef-5)) && (iAIdistSensorY <= (iAIdistSensorYRef+5))){
+          myFahrwerk.stopp();
+          Serial.println  ("GGG EEEEE FFFF UUU NNN DDD EEE NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
+          
+          mainState = DRIVE_TO_TOP;    
+          }
+      } 
+        break;
+
+    case DRIVE_TO_TOP:
+        myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
+         //Wenn zu nahe an Wand, dann abdrehen
+        if((myToeggeliDistanz.getAktuelleDistanzCm()) < 10  ){ 
+          myFahrwerk.stopp();
+          mainState = DRIVE_TO_YELLOW;
+        }
+        
+      break;
   
      case DRIVE_TO_YELLOW:
         Serial.println(" DRIVE_TO_YELLOW ");
@@ -653,6 +708,27 @@ void smoothAbladeServo (unsigned int uiCmdPosLadeServo){
       delay(50);      
     }
   }
+}
+
+void printPotiValues(){
+
+          int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
+          int iAIdistSensorY = analogRead(AnalogPinPotiY);  //Read analog in Value Y Axis
+
+          float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
+          float fVoltageY = (float)iAIdistSensorY * 0.0048828125f;
+
+          Serial.print("X Axis Raw value ");
+          Serial.print(iAIdistSensorX);      //Print raw analog value
+          Serial.print("    Voltage:  ");
+          Serial.print(fVoltageX);
+          Serial.print("V");
+
+          Serial.print("     Y Axis Raw value ");
+          Serial.print(iAIdistSensorY);      //Print raw analog value
+          Serial.print("    Voltage:  ");
+          Serial.print(fVoltageY);
+          Serial.println  ("V");
 
   
 }
