@@ -10,7 +10,7 @@ class Farbsensor
 {
   public:
 	Farbsensor();
-    void init(Print &print);
+    void init(Print &print, boolean bActivateMux);
 	unsigned int getColor(unsigned long* p_ulISRcolorMeasureCounterInSec);
 	
   private:

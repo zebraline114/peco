@@ -8,12 +8,19 @@
 #include "src/Taster/Taster.h"
 #include <Servo.h>
 #include "Peco.h"
+#include "Wire.h"
+
+extern "C"{
+  #include "utility/twi.h" //from Wire library, so we can do bus scanning
+  }
 
 /*****************************************
 * Input und Output PINS
 ******************************************/
 /*Analoge Input PINs*/
 #define WAND_DISTANZ_SENSOR 0 //Distanzsensor ist an Analog IN Pin 0
+
+#define TCAADDR 0x70
 
 /*Digitale PINs*/
 
@@ -44,6 +51,7 @@ static enum eMainStates mainState; /* Laufvariable für Statemachine */
 static enum eRichtungen richtung; /* Richtungen zum fahren */
 static unsigned long ulISRDriveCounterInSec = 0; /* Laufvariable für Zeit während Fahren */
 static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
+static unsigned long ulISRcolorMeasureCounterWallColorInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
 static unsigned long ulISR50ms = 0; /*Laufvariable für Stopps von Motoren zu Richungswechseln*/
 static unsigned long ulISRCollectTimeCounterInSec = 180; /* Laufvariable für Zeit während Fahren in Sekunden */
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
@@ -65,6 +73,7 @@ static Servo myLadeklappeServoMotor; /*Servomotor für Ladeklappe*/
 static WandDistanz myWandDistanz;
 static ToeggeliDistanz myToeggeliDistanz;
 static Farbsensor myFarbsensor;
+static Farbsensor myWandFarbsensor;
 static Taster myOnOffTaster;
 static Taster myEndTasterRechts;
 static Taster myEndTasterLinks;
@@ -131,7 +140,8 @@ void setup() {
   Serial.begin(9600);           // set up Serial library at 9600 bps
   myFahrwerk.init(Serial); // Muss aufgerufen um alle Objekte innerhalb vom Fahrwerkobjekt zu initialisieren (geht im Konstruktor nicht)
   myBuerstenmotor.init(Serial);
-  myFarbsensor.init(Serial);
+  myFarbsensor.init(Serial,0);
+  myWandFarbsensor.init(Serial,1);
   myWandDistanz.init(Serial, WAND_DISTANZ_SENSOR); //
   myToeggeliDistanz.init(Serial, TOEGGELI_DISTANZ_ECHO, TOEGGELI_DISTANZ_TRIG);
   myOnOffTaster.init(Serial, TASTER_ON_OFF);
@@ -142,10 +152,8 @@ void setup() {
   myLadeklappeServoMotor.attach(LADEKLAPPE_SERVO_OUTPUT_PIN);
   mySuchServoMotor.write(0); // SuchMotor sauber initialisiern, sonst ist Ausgansposition nicht klar
   myLadeklappeServoMotor.write(uiActPosLadeServo);
-  delay(100);
+  delay(100); //Warten bis Servomotor auf Startposition ist, Motor braucht etwas Zeit.
   mySortierServoMotor.write(0);
-  
-
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
   mainState = INIT;
@@ -161,6 +169,27 @@ void setup() {
   digitalWrite(SERVO_RELAIS,HIGH); /*Speisung der Servomotoren wieder einschalten*/
 
 
+
+  //======== IBN I2C MUX ================
+  /*Wire.begin();
+  Serial.println("\nTCAScanner ready!");
+  for(uint8_t t=0; t<8; t++){
+    tcaselect(t);
+    Serial.print("TCA Port #"); Serial.println(t);
+
+    for(uint8_t addr = 0; addr<=127; addr++){
+      if (addr == TCAADDR)continue;
+
+      uint8_t data;
+      if(! twi_writeTo(addr,&data, 0, 1, 1)){
+          Serial.print("Found I2C 0x"); Serial.println(addr,HEX);
+        }
+      
+      }
+ 
+
+  }
+  Serial.println("\ndone");*/
 }
 
 /***********************************************************************************************************
@@ -170,10 +199,13 @@ void setup() {
 void loop() {
 
   /*Status vom An/Aus Taster abfragen, bzw ggf toggeln*/
-
+  unsigned int uiWandColor;
   myOnOffTaster.getTaster(&bRunning);
   Serial.print(" bRunning: ");Serial.println(bRunning); 
-  printPotiValues();
+  //printPotiValues();
+    Serial.println(" WAND RGB sensor:   ");
+            uiWandColor = myWandFarbsensor.getColor(&ulISRcolorMeasureCounterWallColorInSec);
+        Serial.print(" myWandFarbsensor.getColor : "); Serial.println(uiWandColor);
 
 
 
@@ -399,6 +431,9 @@ static unsigned int uiSekundencounter = 0;
     //Serial.println("ISR_Timer3 aufgerufen");
   if(ulISRcolorMeasureCounterInSec){
     ulISRcolorMeasureCounterInSec--;
+    }
+   if(ulISRcolorMeasureCounterWallColorInSec){
+    ulISRcolorMeasureCounterWallColorInSec--;
     }
     //digitalWrite(13, digitalRead(13) ^ 1); /*Temporär um zu sehen ob ISR ausgeführt wird*/
   if(ulISR50ms>=1){
@@ -729,6 +764,13 @@ void printPotiValues(){
           Serial.print("    Voltage:  ");
           Serial.print(fVoltageY);
           Serial.println  ("V");
-
-  
 }
+
+void tcaselect(uint8_t i){
+  if (i<7) return;
+
+  Wire.beginTransmission(TCAADDR);
+  Wire.write(1<<i);
+  Wire.endTransmission();
+  
+  }

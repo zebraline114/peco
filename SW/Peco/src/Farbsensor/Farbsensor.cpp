@@ -1,4 +1,5 @@
 #include "Farbsensor.h"
+#define TCAADDR 0x70
 
 
 
@@ -7,7 +8,7 @@ Farbsensor::Farbsensor(){
 	
 }
 
-void Farbsensor::init(Print &print){
+void Farbsensor::init(Print &print, boolean bActivateMux){
 
 	printer = &print; //Object for printing on Serial
 	printer->println("Farbsensor::init Anfang");
@@ -15,6 +16,11 @@ void Farbsensor::init(Print &print){
 
 	printer->println("Farbsensor test!");
 	
+	if(1 == bActivateMux){
+		Wire.beginTransmission(TCAADDR);
+		Wire.write(0); //Wand RGB Sensor ist an Mux SC0 bzw SC0
+		
+	}
 	tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);     // Farbsensor Basiswerte definieren.
 
 	if (tcs.begin()) {											//Farbsensor ansprechen
@@ -60,7 +66,7 @@ unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSe
 	b = blue; b /= sum;
 	r *= 256; g *= 256; b *= 256;
 	printer->print("\t");
-	printer->print((int)r, HEX); printer->print((int)g, HEX); printer->print((int)b, HEX);
+	printer->print((int)r, HEX); printer->print((int)g, HEX); printer->print((int)b, HEX); printer->print("  clear: "); printer->print(clear);
 	printer->println();
 	
 	/* Zur unterscheidung der Farben habe ich den Clear Wert verwendet, weil die Ergebnisse sehr leicht zu 
