@@ -204,7 +204,7 @@ void loop() {
   Serial.print(" bRunning: ");Serial.println(bRunning); 
   //printPotiValues();
     Serial.println(" WAND RGB sensor:   ");
-            uiWandColor = myWandFarbsensor.getColor(&ulISRcolorMeasureCounterWallColorInSec);
+            uiWandColor = myWandFarbsensor.getColor(&ulISRcolorMeasureCounterWallColorInSec,0);
         Serial.print(" myWandFarbsensor.getColor : "); Serial.println(uiWandColor);
 
 
@@ -658,7 +658,7 @@ void sortiereToeggel(void){
 
     if((millis()-ulDelayCounter) > ulDelay){ //nur alle 500ms neue Werte abholen um Zeit von Erkennung zum Servo zu verlängern
       
-        uiColor = myFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
+        uiColor = myFarbsensor.getColor(&ulISRcolorMeasureCounterInSec,0);
         Serial.print(" myFabsensor.getColor : "); Serial.println(uiColor);
         switch(uiOldColor){
           case 0:

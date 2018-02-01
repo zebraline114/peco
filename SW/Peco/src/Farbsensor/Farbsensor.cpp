@@ -18,7 +18,8 @@ void Farbsensor::init(Print &print, boolean bActivateMux){
 	
 	if(1 == bActivateMux){
 		Wire.beginTransmission(TCAADDR);
-		Wire.write(0); //Wand RGB Sensor ist an Mux SC0 bzw SC0
+		Wire.write(1); //Wand RGB Sensor ist an Mux SC0 bzw SC0
+		Wire.endTransmission();
 		
 	}
 	tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);     // Farbsensor Basiswerte definieren.
@@ -33,10 +34,11 @@ void Farbsensor::init(Print &print, boolean bActivateMux){
   
 	 
 	printer->println("Farbsensor::init Ende");
-	
+
 }
 
-unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSec){
+unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSec, boolean bActivateMux){
+	
 	
 	unsigned int uiColor = 0; //Platzhalter
 	unsigned int uiRetVal = 0;
@@ -44,6 +46,12 @@ unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSe
 	uint16_t clear, red, green, blue;						//Variablen für neue Messung zurücksetzten.
 
 	//tcs.setInterrupt(false);      //  LED einschalten
+/*	if(1 == bActivateMux){
+		Wire.beginTransmission(TCAADDR);
+		Wire.write(1); //Wand RGB Sensor ist an Mux SC0 bzw SC0
+		Wire.endTransmission();
+		
+	}*/
 
 	//delay(60);  // Der Farbsensor braucht 50ms zu Verarbeitung
 	if (*p_pulISRcolorMeasureCounterInSec == 0){ //Timing jetzt so, dass jede Sekunde (via Interrupt gesteuert) Daten geholt werden
@@ -66,7 +74,7 @@ unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSe
 	b = blue; b /= sum;
 	r *= 256; g *= 256; b *= 256;
 	printer->print("\t");
-	printer->print((int)r, HEX); printer->print((int)g, HEX); printer->print((int)b, HEX); printer->print("  clear: "); printer->print(clear);
+	printer->print((int)r, HEX); printer->print((int)g, HEX); printer->print((int)b, HEX);
 	printer->println();
 	
 	/* Zur unterscheidung der Farben habe ich den Clear Wert verwendet, weil die Ergebnisse sehr leicht zu 
@@ -93,6 +101,8 @@ unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSe
 	} else /* gelbe Farbe erkannt*/{
 		uiRetVal = 2;
 	}
+	
+			
 	
 	
 	return uiRetVal;
