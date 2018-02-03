@@ -58,6 +58,10 @@ static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
 static unsigned int uiActPosLadeServo = 70;
 static  int iAIdistSensorXRef = 350;
 static  int iAIdistSensorYRef = 350;
+static  int iAIdistSensorXRefYellow = 350;
+static  int iAIdistSensorYRefYellow = 350;
+static  int iAIdistSensorXRefGreen = 350;
+static  int iAIdistSensorYRefGreen = 350;
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
@@ -72,8 +76,8 @@ static Servo mySortierServoMotor; /*Servomotor für die Sortierwippe*/
 static Servo myLadeklappeServoMotor; /*Servomotor für Ladeklappe*/
 static WandDistanz myWandDistanz;
 static ToeggeliDistanz myToeggeliDistanz;
-static Farbsensor myFarbsensor;
-static Farbsensor myWandFarbsensor;
+static Farbsensor myFarbsensor(300, 3000);
+static Farbsensor myWandFarbsensor(300, 3000);
 static Taster myOnOffTaster;
 static Taster myEndTasterRechts;
 static Taster myEndTasterLinks;
@@ -106,8 +110,8 @@ static uint8_t ulArrayUnloadYellow[20][20]= {/**/
 
 
 static uint8_t ulArrayUnloadGreen[20][20]= {/**/
-                                       {RECHTS, VORWAERTS, LINKS, STOPP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                                       {45,          70,    140,    0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
+                                       {RECHTS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                                       {30,          0,    0,    0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
                                      };    
 /**
  * Funktionen
@@ -124,6 +128,7 @@ void setup() {
   * PINMODE
   */
   //pinMode(iLedOutputPIN,OUTPUT);
+  Wire.begin();
   
   pinMode(SERVO_RELAIS, OUTPUT);
   pinMode(TOEGGELI_DISTANZ_ECHO, INPUT);
@@ -141,7 +146,6 @@ void setup() {
   myFahrwerk.init(Serial); // Muss aufgerufen um alle Objekte innerhalb vom Fahrwerkobjekt zu initialisieren (geht im Konstruktor nicht)
   myBuerstenmotor.init(Serial);
   myFarbsensor.init(Serial,0);
-  myWandFarbsensor.init(Serial,1);
   myWandDistanz.init(Serial, WAND_DISTANZ_SENSOR); //
   myToeggeliDistanz.init(Serial, TOEGGELI_DISTANZ_ECHO, TOEGGELI_DISTANZ_TRIG);
   myOnOffTaster.init(Serial, TASTER_ON_OFF);
@@ -156,8 +160,8 @@ void setup() {
   mySortierServoMotor.write(0);
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
-  mainState = INIT;
-  //mainState = UNLOAD_YELLOW;
+  //mainState = INIT;
+  mainState = FIND_YELLOW_WALL_ENTRY;
   //mainState = DRIVE_TO_MIDDLE;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
@@ -199,13 +203,10 @@ void setup() {
 void loop() {
 
   /*Status vom An/Aus Taster abfragen, bzw ggf toggeln*/
-  unsigned int uiWandColor;
   myOnOffTaster.getTaster(&bRunning);
   Serial.print(" bRunning: ");Serial.println(bRunning); 
   //printPotiValues();
-    Serial.println(" WAND RGB sensor:   ");
-            uiWandColor = myWandFarbsensor.getColor(&ulISRcolorMeasureCounterWallColorInSec,0);
-        Serial.print(" myWandFarbsensor.getColor : "); Serial.println(uiWandColor);
+
 
 
 
@@ -245,12 +246,12 @@ void loop() {
           myFahrwerk.stopp();
           mainState = DRIVE_AND_COLLECT_DISTANCE;
         }
-
         break;
         
      case DRIVE_AND_COLLECT_DISTANCE:{
       static boolean bTurnActive = 0;
         static uint8_t u8TurnState = 0;
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
         sortiereToeggel(); 
         Serial.print(" DRIVE_AND_COLLECT_DISTANCE:  u8TurnState");  Serial.print(u8TurnState); 
         Serial.print(" ulISRDriveCounterInSec");  Serial.println(ulISRDriveCounterInSec); 
@@ -291,13 +292,69 @@ void loop() {
             
         }
         if ((0 == bTurnActive) && (ulISRCollectTimeCounterInSec <=0)){
-          mainState = DRIVE_TO_MIDDLE;
+          mainState = FIND_YELLOW_WALL_ENTRY;
           }
 
      }
         break;
+    case FIND_YELLOW_WALL_ENTRY:{
+      Serial.println(" FIND_YELLOW_WALL_ENTRY ");
+      myBuerstenmotor.stopp();
+      myWandFarbsensor.init(Serial,1); //ab jetzt ist nur noch RGB Sensor für Wanderkennung aktiv
+      myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
+      mainState = FIND_YELLOW_WALL;
+    }
+    break;
 
-    case DRIVE_TO_MIDDLE:
+    case FIND_YELLOW_WALL:{
+      Serial.println(" FIND_YELLOW_WALL ");      
+      static uint8_t uiLastWandColor = 0;
+      unsigned int uiWandColor = 0;
+      driveAlongWall();
+      uiWandColor = myWandFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
+      Serial.print(" uiWandColor: "); Serial.println(uiWandColor);
+      //Erkennen ob erst gelbe, dann farblose Wand erkannt wurde
+      if((2 == uiLastWandColor) && (0 == uiWandColor)){
+          mainState = TURN_TO_YELLOW;
+        }
+      uiLastWandColor = uiWandColor;
+    }
+    break;
+
+    case TURN_TO_YELLOW:
+      Serial.println(" TURN_TO_YELLOW "); 
+      {
+         myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 360);
+        //PotiDistanzmesser abfragen
+        int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
+        int iAIdistSensorY = analogRead(AnalogPinPotiY);  //Read analog in Value Y Axis
+
+        float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
+        float fVoltageY = (float)iAIdistSensorY * 0.0048828125f;
+
+        Serial.print("X Axis Raw value ");
+        Serial.print(iAIdistSensorX);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageX);
+        Serial.print("V");
+
+        Serial.print("     Y Axis Raw value ");
+        Serial.print(iAIdistSensorY);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageY);
+        Serial.println  ("V");
+        
+        if((iAIdistSensorX >= (iAIdistSensorXRefYellow-5)) &&(iAIdistSensorX <= (iAIdistSensorXRefYellow+5))  
+          &&  (iAIdistSensorY >= (iAIdistSensorYRefYellow-5)) && (iAIdistSensorY <= (iAIdistSensorYRefYellow+5))){
+          myFahrwerk.stopp();
+          Serial.println  ("GGGG EEEEE LLLLLL BBB Winkel gggg eeee fffff uuuuu nnnnn den");
+          myFahrwerk.fahrRueckwaerts(SPEED_GANZLANGSAM);
+          mainState = UNLOAD_YELLOW;    
+          }
+      }       
+    break;
+
+    /*case DRIVE_TO_MIDDLE:
       Serial.println(" DRIVE_TO_MIDDLE ");
       myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
       sortiereToeggel();
@@ -341,6 +398,8 @@ void loop() {
       } 
         break;
 
+
+
     case DRIVE_TO_TOP:
         myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
          //Wenn zu nahe an Wand, dann abdrehen
@@ -359,13 +418,13 @@ void loop() {
           mainState = UNLOAD_YELLOW;
         }          
         break;
-     
+  */   
      
      case UNLOAD_YELLOW:
         Serial.println(" UNLOAD_YELLOW ");
-        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-        sortiereToeggel();
-        /*Fahren bis Endschalter auslösen*/
+        //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        //sortiereToeggel();
+        //Fahren bis Endschalter auslösen
         if(1 == abladen(116)){
            mainState = DRIVE_TO_GREEN;       
         }
@@ -373,20 +432,77 @@ void loop() {
 
      case DRIVE_TO_GREEN:
         Serial.println(" DRIVE_TO_GREEN");
-        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-        /*sortiere*/
-        sortiereToeggel();
+        //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        //sortiere
+        //sortiereToeggel();
         if(1 == fahreAblauf(ulArrayUnloadGreen)){            
-          mainState = UNLOAD_GREEN;
+          mainState = FIND_GREEN_WALL_ENTRY;
         }
         break;      
      break;
+
+    case FIND_GREEN_WALL_ENTRY:{
+      Serial.println(" FIND_GREEN_WALL_ENTRY ");
+      myBuerstenmotor.stopp();
+      myWandFarbsensor.init(Serial,1); //ab jetzt ist nur noch RGB Sensor für Wanderkennung aktiv
+      myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
+      mainState = FIND_GREEN_WALL;
+    }
+    break;
+
+    case FIND_GREEN_WALL:{
+      Serial.println(" FIND_GREEN_WALL ");      
+      static uint8_t uiLastWandColor = 0;
+      unsigned int uiWandColor = 0;
+      driveAlongWall();
+      uiWandColor = myWandFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
+      Serial.print(" uiWandColor: "); Serial.println(uiWandColor);
+      //Erkennen ob erst grüne, dann farblose Wand erkannt wurde
+      if((1 == uiLastWandColor) && (0 == uiWandColor)){
+          mainState = TURN_TO_GREEN;
+        }
+      uiLastWandColor = uiWandColor;
+    }
+    break;
+
+    case TURN_TO_GREEN:
+      Serial.println(" TURN_TO_GREEN "); 
+      {
+         myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 360);
+        //PotiDistanzmesser abfragen
+        int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
+        int iAIdistSensorY = analogRead(AnalogPinPotiY);  //Read analog in Value Y Axis
+
+        float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
+        float fVoltageY = (float)iAIdistSensorY * 0.0048828125f;
+
+        Serial.print("X Axis Raw value ");
+        Serial.print(iAIdistSensorX);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageX);
+        Serial.print("V");
+
+        Serial.print("     Y Axis Raw value ");
+        Serial.print(iAIdistSensorY);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageY);
+        Serial.println  ("V");
+        
+        if((iAIdistSensorX >= (iAIdistSensorXRefGreen-5)) &&(iAIdistSensorX <= (iAIdistSensorXRefGreen+5))  
+          &&  (iAIdistSensorY >= (iAIdistSensorYRefGreen-5)) && (iAIdistSensorY <= (iAIdistSensorYRefGreen+5))){
+          myFahrwerk.stopp();
+          Serial.println  ("G RRR UUUUUUEEEEEEEEEE NNNN Winkel gggg eeee fffff uuuuu nnnnn den");
+          myFahrwerk.fahrRueckwaerts(SPEED_GANZLANGSAM);
+          mainState = UNLOAD_GREEN;    
+          }
+      }       
+    break;
         
      case UNLOAD_GREEN:
         Serial.println(" UNLOAD_GREEN");
-        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
         /*sortiere*/
-        sortiereToeggel();
+        //sortiereToeggel();
         /*Fahren bis Endschalter auslösen*/
         if(1 == abladen(1)){
            mainState = END;       
@@ -658,7 +774,7 @@ void sortiereToeggel(void){
 
     if((millis()-ulDelayCounter) > ulDelay){ //nur alle 500ms neue Werte abholen um Zeit von Erkennung zum Servo zu verlängern
       
-        uiColor = myFarbsensor.getColor(&ulISRcolorMeasureCounterInSec,0);
+        uiColor = myFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
         Serial.print(" myFabsensor.getColor : "); Serial.println(uiColor);
         switch(uiOldColor){
           case 0:
@@ -774,3 +890,47 @@ void tcaselect(uint8_t i){
   Wire.endTransmission();
   
   }
+
+
+void driveAlongWall(){
+  
+  static boolean bTurnActive = 0;
+  static uint8_t u8TurnState = 0;
+  Serial.print(" driveAlongWall:  u8TurnState");  Serial.print(u8TurnState); 
+  Serial.print(" ulISRDriveCounterInSec");  Serial.println(ulISRDriveCounterInSec); 
+  
+  //Wenn zu nahe an Wand, dann abdrehen
+  if((myToeggeliDistanz.getAktuelleDistanzCm()) < 11 && (bTurnActive == 0)){ //Hindernis erkannt && Drehung momentan nicht aktiv, dann Drehung initialisieren
+  
+        bTurnActive = 1; //Flag für Drehung ist aktiv
+        u8TurnState = 0; //State für switch startet bei 0
+        ulISR50ms = 1;
+        //ulISRDriveCounterInSec = 1; //50ms Stopp zum Halbbrückenschutz
+        myFahrwerk.stopp();
+  }
+  if (bTurnActive == 1){
+      switch(u8TurnState) {
+        case 0: // Warten bis Stopp vorbei und Drehung einleiten
+          if(ulISR50ms == 0){
+              unsigned long ulDriveTimeMs = myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 30);
+              ulISRDriveCounterInSec = (unsigned long)((ulDriveTimeMs+1)/1000); 
+              u8TurnState = 1;
+            }
+          break;
+        case 1: //Warten bis Drehung vorbei und Stopp einleiten
+          if(0 == ulISRDriveCounterInSec){
+              //ulISRDriveCounterInSec = 1; //50ms Stopp zum Hbrückenschutz
+              ulISR50ms = 1; //50ms Stopp zum Hbrückenschutz
+              myFahrwerk.stopp();
+              u8TurnState = 2;
+            }                
+          break;
+        case 2:// Warten bis Stopp vorbei und wieder vorwärts fahren einleiten
+          if(0 == ulISR50ms){
+              myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
+              bTurnActive = 0;
+            }
+          break;
+        }
+  }
+}

@@ -9,14 +9,17 @@
 class Farbsensor
 {
   public:
-	Farbsensor();
-    void init(Print &print, boolean bActivateMux);
-	unsigned int getColor(unsigned long* p_ulISRcolorMeasureCounterInSec, boolean bActivateMux);
+	Farbsensor(uint32_t p_ui32borderGreen, uint32_t p_ui32borderYellow);
+    void init(Print &print, uint8_t ui8ActivateMux);
+	unsigned int getColor(unsigned long* p_ulISRcolorMeasureCounterInSec);
 	
   private:
 	Print* printer;
 	Adafruit_TCS34725 tcs;
 	byte gammatable[256];
+	void Farbsensor::tcaselect(uint8_t i);
+	uint32_t ui32borderGreen;
+	uint32_t ui32borderYellow;
 
 
 };

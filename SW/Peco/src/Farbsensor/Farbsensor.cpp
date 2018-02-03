@@ -1,14 +1,17 @@
 #include "Farbsensor.h"
+#include "Wire.h"
 #define TCAADDR 0x70
 
 
 
-Farbsensor::Farbsensor(){
-	/* nicht löschen!*/
+Farbsensor::Farbsensor(uint32_t p_ui32borderGreen, uint32_t p_ui32borderYellow){
+
+	ui32borderGreen = p_ui32borderGreen;
+	ui32borderYellow = p_ui32borderYellow;
 	
 }
 
-void Farbsensor::init(Print &print, boolean bActivateMux){
+void Farbsensor::init(Print &print, uint8_t ui8ActivateMux){
 
 	printer = &print; //Object for printing on Serial
 	printer->println("Farbsensor::init Anfang");
@@ -16,12 +19,8 @@ void Farbsensor::init(Print &print, boolean bActivateMux){
 
 	printer->println("Farbsensor test!");
 	
-	if(1 == bActivateMux){
-		Wire.beginTransmission(TCAADDR);
-		Wire.write(1); //Wand RGB Sensor ist an Mux SC0 bzw SC0
-		Wire.endTransmission();
-		
-	}
+	tcaselect(ui8ActivateMux);
+
 	tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);     // Farbsensor Basiswerte definieren.
 
 	if (tcs.begin()) {											//Farbsensor ansprechen
@@ -37,7 +36,7 @@ void Farbsensor::init(Print &print, boolean bActivateMux){
 
 }
 
-unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSec, boolean bActivateMux){
+unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSec){
 	
 	
 	unsigned int uiColor = 0; //Platzhalter
@@ -46,12 +45,6 @@ unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSe
 	uint16_t clear, red, green, blue;						//Variablen für neue Messung zurücksetzten.
 
 	//tcs.setInterrupt(false);      //  LED einschalten
-/*	if(1 == bActivateMux){
-		Wire.beginTransmission(TCAADDR);
-		Wire.write(1); //Wand RGB Sensor ist an Mux SC0 bzw SC0
-		Wire.endTransmission();
-		
-	}*/
 
 	//delay(60);  // Der Farbsensor braucht 50ms zu Verarbeitung
 	if (*p_pulISRcolorMeasureCounterInSec == 0){ //Timing jetzt so, dass jede Sekunde (via Interrupt gesteuert) Daten geholt werden
@@ -83,13 +76,13 @@ unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSe
 	   um die 10`000. Die Feinabstimmung muss natürlich noch im Roboter gemacht werden.
 	*/
 	
-	if(clear < 300) {						//Kein Töggel
+	if(clear < ui32borderGreen) {						//Kein Töggel
     uiColor = 0;							
 	}
-	if(clear > 300 && clear < 3000) {		// Grün
+	if(clear > ui32borderGreen && clear < ui32borderYellow) {		// Grün
     uiColor = 1;
 	}
-	if (clear > 3000) {						// Gelb
+	if (clear > ui32borderYellow) {						// Gelb
 	uiColor = 2;	
 	} 
 	
@@ -108,3 +101,13 @@ unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSe
 	return uiRetVal;
 	
 }
+
+void Farbsensor::tcaselect(uint8_t i){
+  printer->print("tcaselect: i: "); printer->println(i);
+  if (i>7) return;
+
+  Wire.beginTransmission(TCAADDR);
+  Wire.write(1<<i);
+  Wire.endTransmission();
+  
+  }
