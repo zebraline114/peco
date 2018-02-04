@@ -160,10 +160,10 @@ void setup() {
   mySortierServoMotor.write(0);
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
-  //mainState = INIT;
+  mainState = INIT;
   //mainState = FIND_YELLOW_WALL_ENTRY;
  // mainState = FIND_GREEN_WALL_ENTRY;
- mainState = DRIVE_AND_COLLECT_DISTANCE_INIT;
+ //mainState = DRIVE_AND_COLLECT_DISTANCE_INIT;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
@@ -195,7 +195,6 @@ void setup() {
 
   }
   Serial.println("\ndone");*/
-  bRunning = true;
 }
 
 /***********************************************************************************************************
@@ -234,7 +233,6 @@ void loop() {
         //Sammelfahrt starten
         if(1 == fahreAblauf(ulArrayDriveCollect1)){
           mainState = DRIVE_AND_COLLECT_DISTANCE_INIT;
-          bRunning = false;
         }
         break;
 
@@ -296,7 +294,8 @@ void loop() {
             
         }
         if ((0 == bTurnActive) && (ulISRCollectTimeCounterInSec <=0)){
-          mainState = FIND_YELLOW_WALL_ENTRY;
+         // mainState = FIND_YELLOW_WALL_ENTRY;
+         mainState = DRIVE_TO_MIDDLE;
           }
 
      }
@@ -358,10 +357,10 @@ void loop() {
       }       
     break;
 
-    /*case DRIVE_TO_MIDDLE:
+    case DRIVE_TO_MIDDLE:
       Serial.println(" DRIVE_TO_MIDDLE ");
-      myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-      sortiereToeggel();
+      //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+      //sortiereToeggel();
       if(1 == fahreAblauf(ulArrayDriveCollect2)){ 
         mainState = FIND_TOP;
        }  
@@ -369,8 +368,8 @@ void loop() {
       
     case FIND_TOP:
       Serial.println(" FIND_TOP ");
-      myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-      sortiereToeggel();
+      //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+     // sortiereToeggel();
       {
          myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 360);
         //PotiDistanzmesser abfragen
@@ -422,7 +421,7 @@ void loop() {
           mainState = UNLOAD_YELLOW;
         }          
         break;
-  */   
+     
      
      case UNLOAD_YELLOW:
         Serial.println(" UNLOAD_YELLOW ");
@@ -440,7 +439,8 @@ void loop() {
         //sortiere
         //sortiereToeggel();
         if(1 == fahreAblauf(ulArrayUnloadGreen)){            
-          mainState = FIND_GREEN_WALL_ENTRY;
+         // mainState = FIND_GREEN_WALL_ENTRY;
+         mainState = UNLOAD_GREEN;
         }
         break;      
      break;
