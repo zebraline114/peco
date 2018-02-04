@@ -12,6 +12,7 @@ class Farbsensor
 	Farbsensor(uint32_t p_ui32borderGreen, uint32_t p_ui32borderYellow);
     void init(Print &print, uint8_t ui8ActivateMux);
 	unsigned int getColor(unsigned long* p_ulISRcolorMeasureCounterInSec);
+	uint16_t getClearValue(unsigned long* p_pulISRcolorMeasureCounterInSec);
 	
   private:
 	Print* printer;

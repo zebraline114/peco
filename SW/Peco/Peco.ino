@@ -161,8 +161,9 @@ void setup() {
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
   //mainState = INIT;
-  mainState = FIND_YELLOW_WALL_ENTRY;
-  //mainState = DRIVE_TO_MIDDLE;
+  //mainState = FIND_YELLOW_WALL_ENTRY;
+ // mainState = FIND_GREEN_WALL_ENTRY;
+ mainState = DRIVE_AND_COLLECT_DISTANCE_INIT;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
@@ -194,6 +195,7 @@ void setup() {
 
   }
   Serial.println("\ndone");*/
+  bRunning = true;
 }
 
 /***********************************************************************************************************
@@ -205,7 +207,8 @@ void loop() {
   /*Status vom An/Aus Taster abfragen, bzw ggf toggeln*/
   myOnOffTaster.getTaster(&bRunning);
   Serial.print(" bRunning: ");Serial.println(bRunning); 
-  printPotiValues();
+  //printPotiValues();
+  
 
 
 
@@ -231,6 +234,7 @@ void loop() {
         //Sammelfahrt starten
         if(1 == fahreAblauf(ulArrayDriveCollect1)){
           mainState = DRIVE_AND_COLLECT_DISTANCE_INIT;
+          bRunning = false;
         }
         break;
 
@@ -308,10 +312,10 @@ void loop() {
 
     case FIND_YELLOW_WALL:{
       Serial.println(" FIND_YELLOW_WALL ");      
-      static uint8_t uiLastWandColor = 0;
-      unsigned int uiWandColor = 0;
+      static uint16_t uiLastWandColor = 0;
+      uint16_t uiWandColor = 0;
       driveAlongWall();
-      uiWandColor = myWandFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
+      uiWandColor = myWandFarbsensor.getClearValue(&ulISRcolorMeasureCounterInSec);
       Serial.print(" uiWandColor: "); Serial.println(uiWandColor);
       //Erkennen ob erst gelbe, dann farblose Wand erkannt wurde
       if((2 == uiLastWandColor) && (0 == uiWandColor)){
@@ -451,17 +455,22 @@ void loop() {
     break;
 
     case FIND_GREEN_WALL:{
-      Serial.println(" FIND_GREEN_WALL ");      
-      static uint8_t uiLastWandColor = 0;
-      unsigned int uiWandColor = 0;
+      Serial.println(" FIND_GREEN_WALL "); 
+      driveAlongWall();     
+ /*     static uint16_t uiLastWandColor = 0;
+      uint16_t uiWandColor = 0;
+      if(uiLastWandColor == 0){
+        uiLastWandColor = myWandFarbsensor.getClearValue(&ulISRcolorMeasureCounterInSec);
+        }
       driveAlongWall();
-      uiWandColor = myWandFarbsensor.getColor(&ulISRcolorMeasureCounterInSec);
+      uiWandColor = myWandFarbsensor.getClearValue(&ulISRcolorMeasureCounterInSec);
       Serial.print(" uiWandColor: "); Serial.println(uiWandColor);
       //Erkennen ob erst grüne, dann farblose Wand erkannt wurde
-      if((1 == uiLastWandColor) && (0 == uiWandColor)){
-          mainState = TURN_TO_GREEN;
+      if(( uiLastWandColor <= 900) && (uiWandColor >900)){
+          //mainState = TURN_TO_GREEN;
+          mainState = END;
         }
-      uiLastWandColor = uiWandColor;
+      uiLastWandColor = uiWandColor;*/
     }
     break;
 
