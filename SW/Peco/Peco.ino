@@ -118,8 +118,8 @@ static uint8_t ulArrayUnloadYellow[20][20]= {/**/
 
 
 static uint8_t ulArrayUnloadGreen[20][20]= {/**/
-                                       {RECHTS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                                       {30,          0,    0,    0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
+                                       {RUECKWAERTS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                                       {7,          0,    0,    0,     0,         0,     0,       0,     0,       0,      0,       0,      0,       0,      0,       0,      0,       0,      0,       0}  
                                      };    
 /**
  * Funktionen
@@ -168,10 +168,10 @@ void setup() {
   mySortierServoMotor.write(0);
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
-  //mainState = INIT;
+  mainState = INIT;
   //mainState = FIND_YELLOW_WALL_ENTRY;
  // mainState = FIND_YELLOW_WALL_ENTRY;
- mainState = TURN_TO_WALL;
+ //mainState = TURN_TO_WALL;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
@@ -253,7 +253,6 @@ void loop() {
 
         //Wenn zu nahe an Wand, dann abdrehen
         if((myToeggeliDistanz.getAktuelleDistanzCm()) < 16  ){ 
-          myFahrwerk.stopp();
           mainState = DRIVE_AND_COLLECT_DISTANCE;
         }
         break;
@@ -478,9 +477,20 @@ void loop() {
           myFahrwerk.stopp();
           Serial.println  ("GGG EEEEE FFFF UUU NNN DDD EEE NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
           
-          mainState = TURN_TO_GREEN;    
+          mainState = DRIVE_TO_GREEN;    
           }
       } 
+        break;
+
+    case DRIVE_TO_GREEN:
+        Serial.println(" DRIVE_AND_COLLECT ");
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); 
+ 
+        sortiereToeggel();  
+        //Sammelfahrt starten
+        if(1 == fahreAblauf(ulArrayUnloadGreen)){
+          mainState = TURN_TO_GREEN;
+        }
         break;
         
      case TURN_TO_GREEN:
