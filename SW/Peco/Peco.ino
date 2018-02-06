@@ -58,10 +58,10 @@ static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
 static unsigned int uiActPosLadeServo = 70;
 static  int iAIdistSensorXRef = 350;
 static  int iAIdistSensorYRef = 350;
-static  int iAIdistSensorXRefYellow = 760;
-static  int iAIdistSensorYRefYellow = 783;
-static  int iAIdistSensorXRefGreen = 737;
-static  int iAIdistSensorYRefGreen = 778;
+static  int iAIdistSensorXRefYellow = 775;
+static  int iAIdistSensorYRefYellow = 760;
+static  int iAIdistSensorXRefGreen = 776;
+static  int iAIdistSensorYRefGreen = 734;
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
@@ -206,7 +206,7 @@ void loop() {
   /*Status vom An/Aus Taster abfragen, bzw ggf toggeln*/
   myOnOffTaster.getTaster(&bRunning);
   Serial.print(" bRunning: ");Serial.println(bRunning); 
-  //printPotiValues();
+  printPotiValues();
   
 
 
