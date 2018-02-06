@@ -58,8 +58,10 @@ static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
 static unsigned int uiActPosLadeServo = 70;
 static  int iAIdistSensorXRef = 350;
 static  int iAIdistSensorYRef = 350;
-static  int iAIdistSensorXRefYellow = 775;
-static  int iAIdistSensorYRefYellow = 760;
+static  int iAIdistSensorXRefYellow1 = 763;
+static  int iAIdistSensorYRefYellow1 = 756;
+static  int iAIdistSensorXRefYellow = 763;
+static  int iAIdistSensorYRefYellow = 768;
 static  int iAIdistSensorXRefGreen = 776;
 static  int iAIdistSensorYRefGreen = 734;
 
@@ -160,9 +162,9 @@ void setup() {
   mySortierServoMotor.write(0);
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
-  mainState = INIT;
+  //mainState = INIT;
   //mainState = FIND_YELLOW_WALL_ENTRY;
- // mainState = FIND_GREEN_WALL_ENTRY;
+  mainState = FIND_YELLOW_WALL_ENTRY;
  //mainState = DRIVE_AND_COLLECT_DISTANCE_INIT;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
@@ -295,7 +297,7 @@ void loop() {
         }
         if ((0 == bTurnActive) && (ulISRCollectTimeCounterInSec <=0)){
          // mainState = FIND_YELLOW_WALL_ENTRY;
-         mainState = DRIVE_TO_MIDDLE;
+         mainState = FIND_YELLOW_WALL_ENTRY;
           }
 
      }
@@ -305,34 +307,24 @@ void loop() {
       myBuerstenmotor.stopp();
       myWandFarbsensor.init(Serial,1); //ab jetzt ist nur noch RGB Sensor für Wanderkennung aktiv
       myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
-      mainState = FIND_YELLOW_WALL;
+      mainState = DRIVE_TO_YELLOW_WALL_POTI1;
     }
     break;
 
-    case FIND_YELLOW_WALL:{
-      Serial.println(" FIND_YELLOW_WALL ");      
-      static uint16_t uiLastWandColor = 0;
-      uint16_t uiWandColor = 0;
-      driveAlongWall();
-      uiWandColor = myWandFarbsensor.getClearValue(&ulISRcolorMeasureCounterInSec);
-      Serial.print(" uiWandColor: "); Serial.println(uiWandColor);
-      //Erkennen ob erst gelbe, dann farblose Wand erkannt wurde
-      if((2 == uiLastWandColor) && (0 == uiWandColor)){
-          mainState = TURN_TO_YELLOW;
-        }
-      uiLastWandColor = uiWandColor;
-    }
-    break;
 
-    case TURN_TO_YELLOW:
-      Serial.println(" TURN_TO_YELLOW "); 
+      
+    case DRIVE_TO_YELLOW_WALL_POTI1:
+      Serial.println(" DRIVE_TO_YELLOW_WALL_POTI1 ");
+      //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+     // sortiereToeggel();
+           driveAlongWall();
       {
-         myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 360);
+ 
         //PotiDistanzmesser abfragen
         int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
         int iAIdistSensorY = analogRead(AnalogPinPotiY);  //Read analog in Value Y Axis
 
-        float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
+       /* float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
         float fVoltageY = (float)iAIdistSensorY * 0.0048828125f;
 
         Serial.print("X Axis Raw value ");
@@ -345,7 +337,45 @@ void loop() {
         Serial.print(iAIdistSensorY);      //Print raw analog value
         Serial.print("    Voltage:  ");
         Serial.print(fVoltageY);
-        Serial.println  ("V");
+        Serial.println  ("V");*/
+        
+        if((iAIdistSensorX >= (iAIdistSensorXRefYellow1-5)) &&(iAIdistSensorX <= (iAIdistSensorXRefYellow1+5))  
+          &&  (iAIdistSensorY >= (iAIdistSensorYRefYellow1-5)) && (iAIdistSensorY <= (iAIdistSensorYRefYellow1+5))){
+          myFahrwerk.stopp();
+          Serial.println  ("GGG EEEEE FFFF UUU NNN DDD EEE NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
+          
+          mainState = TURN_TO_YELLOW;    
+          }
+      } 
+        break;
+
+
+
+
+
+
+    case TURN_TO_YELLOW:
+      Serial.println(" TURN_TO_YELLOW "); 
+      {
+         myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 360);
+        //PotiDistanzmesser abfragen
+        int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
+        int iAIdistSensorY = analogRead(AnalogPinPotiY);  //Read analog in Value Y Axis
+
+       /* float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
+        float fVoltageY = (float)iAIdistSensorY * 0.0048828125f;
+
+        Serial.print("X Axis Raw value ");
+        Serial.print(iAIdistSensorX);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageX);
+        Serial.print("V");
+
+        Serial.print("     Y Axis Raw value ");
+        Serial.print(iAIdistSensorY);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageY);
+        Serial.println  ("V");*/
         
         if((iAIdistSensorX >= (iAIdistSensorXRefYellow-5)) &&(iAIdistSensorX <= (iAIdistSensorXRefYellow+5))  
           &&  (iAIdistSensorY >= (iAIdistSensorYRefYellow-5)) && (iAIdistSensorY <= (iAIdistSensorYRefYellow+5))){
@@ -356,6 +386,8 @@ void loop() {
           }
       }       
     break;
+
+
 
     case DRIVE_TO_MIDDLE:
       Serial.println(" DRIVE_TO_MIDDLE ");
@@ -429,7 +461,7 @@ void loop() {
         //sortiereToeggel();
         //Fahren bis Endschalter auslösen
         if(1 == abladen(116)){
-           mainState = DRIVE_TO_GREEN;       
+           mainState = END;       
         }
         break;
 
@@ -457,7 +489,7 @@ void loop() {
     case FIND_GREEN_WALL:{
       Serial.println(" FIND_GREEN_WALL "); 
       driveAlongWall();     
- /*     static uint16_t uiLastWandColor = 0;
+     static uint16_t uiLastWandColor = 0;
       uint16_t uiWandColor = 0;
       if(uiLastWandColor == 0){
         uiLastWandColor = myWandFarbsensor.getClearValue(&ulISRcolorMeasureCounterInSec);
@@ -466,11 +498,11 @@ void loop() {
       uiWandColor = myWandFarbsensor.getClearValue(&ulISRcolorMeasureCounterInSec);
       Serial.print(" uiWandColor: "); Serial.println(uiWandColor);
       //Erkennen ob erst grüne, dann farblose Wand erkannt wurde
-      if(( uiLastWandColor <= 900) && (uiWandColor >900)){
+      if(( uiLastWandColor <= 900) && (uiWandColor >920)){
           //mainState = TURN_TO_GREEN;
           mainState = END;
         }
-      uiLastWandColor = uiWandColor;*/
+      uiLastWandColor = uiWandColor;
     }
     break;
 
@@ -521,6 +553,7 @@ void loop() {
      case END:
         Serial.println(" END ");
         myBuerstenmotor.stopp();
+        myFahrwerk.stopp();
         break;   
      default:
         Serial.println(" default ");
@@ -821,12 +854,12 @@ boolean abladen(unsigned int p_uiServoStellungInGrad){
     if(1 == bEndTasterRechts){ //Wenn rechter Endschalter ausgelöst hat, rechtes Rad anhalten
         myFahrwerk.stoppRechts();
       }else{
-        myFahrwerk.fahrRueckwaertsRechts(SPEED_GANZLANGSAM);
+        myFahrwerk.fahrRueckwaertsRechts(SPEED_LANGSAM);
     }
     if(1 == bEndTasterLinks){ //Wenn linker Endschalter ausgelöst hat, linkes Rad anhalten
         myFahrwerk.stoppLinks();
       }else{
-        myFahrwerk.fahrRueckwaertsLinks(SPEED_GANZLANGSAM);
+        myFahrwerk.fahrRueckwaertsLinks(SPEED_LANGSAM);
     }
     if((1 == bEndTasterRechts) && (1 == bEndTasterLinks)){
       smoothAbladeServo(p_uiServoStellungInGrad);              
