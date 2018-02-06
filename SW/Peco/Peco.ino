@@ -310,7 +310,8 @@ void loop() {
         
     case FIND_YELLOW_WALL_ENTRY:{
       Serial.println(" FIND_YELLOW_WALL_ENTRY ");
-      myBuerstenmotor.stopp();
+      myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+      sortiereToeggel();  
       myWandFarbsensor.init(Serial,1); //ab jetzt ist nur noch RGB Sensor für Wanderkennung aktiv
       myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
       mainState = DRIVE_TO_YELLOW_WALL_POTI1;
@@ -321,8 +322,8 @@ void loop() {
       
     case DRIVE_TO_YELLOW_WALL_POTI1:
       Serial.println(" DRIVE_TO_YELLOW_WALL_POTI1 ");
-      //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-     // sortiereToeggel();
+      myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+      sortiereToeggel();
            driveAlongWall();
       {
  
@@ -363,6 +364,8 @@ void loop() {
     case TURN_TO_YELLOW:
       Serial.println(" TURN_TO_YELLOW "); 
       {
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        sortiereToeggel();  
          myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 360);
         //PotiDistanzmesser abfragen
         int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
@@ -395,8 +398,8 @@ void loop() {
      
      case UNLOAD_YELLOW:
         Serial.println(" UNLOAD_YELLOW ");
-        //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-        //sortiereToeggel();
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        sortiereToeggel();
         //Fahren bis Endschalter auslösen
         if(1 == abladen(116)){
            mainState = TURN_TO_WALL;       
@@ -406,6 +409,8 @@ void loop() {
 
     case TURN_TO_WALL:
       Serial.println(" TURN_TO_WALL "); 
+      myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+      sortiereToeggel();  
       {
          myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, 360);
         //PotiDistanzmesser abfragen
@@ -438,8 +443,8 @@ void loop() {
 
     case FIND_GREEN_WALL_ENTRY:{
       Serial.println(" FIND_GREEN_WALL_ENTRY ");
-      myBuerstenmotor.stopp();
-      myWandFarbsensor.init(Serial,1); //ab jetzt ist nur noch RGB Sensor für Wanderkennung aktiv
+      myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+      sortiereToeggel();  
       myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
       mainState = DRIVE_TO_GREEN_WALL_POTI1;
     }
@@ -448,8 +453,8 @@ void loop() {
 
     case DRIVE_TO_GREEN_WALL_POTI1:
       Serial.println(" DRIVE_TO_YELLOW_WALL_POTI1 ");
-      //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-     // sortiereToeggel();
+      myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+      sortiereToeggel();
            driveAlongWall();
       {
  
@@ -484,8 +489,7 @@ void loop() {
 
     case DRIVE_TO_GREEN:
         Serial.println(" DRIVE_AND_COLLECT ");
-        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS); 
- 
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);  
         sortiereToeggel();  
         //Sammelfahrt starten
         if(1 == fahreAblauf(ulArrayUnloadGreen)){
@@ -496,6 +500,8 @@ void loop() {
      case TURN_TO_GREEN:
       Serial.println(" TURN_TO_GREEN "); 
       {
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        sortiereToeggel();  
          myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 360);
         //PotiDistanzmesser abfragen
         int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
@@ -530,9 +536,8 @@ void loop() {
         
      case UNLOAD_GREEN:
         Serial.println(" UNLOAD_GREEN");
-        //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-        /*sortiere*/
-        //sortiereToeggel();
+        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+        sortiereToeggel();
         /*Fahren bis Endschalter auslösen*/
         if(1 == abladen(1)){
            mainState = END;       
