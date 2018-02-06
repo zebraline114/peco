@@ -62,8 +62,14 @@ static  int iAIdistSensorXRefYellow1 = 763;
 static  int iAIdistSensorYRefYellow1 = 756;
 static  int iAIdistSensorXRefYellow = 763;
 static  int iAIdistSensorYRefYellow = 768;
-static  int iAIdistSensorXRefGreen = 776;
-static  int iAIdistSensorYRefGreen = 734;
+static  int iAIdistSensorXRefWall = 759;
+static  int iAIdistSensorYRefWall = 760;
+static  int iAIdistSensorXRefGreen1 = 761;
+static  int iAIdistSensorYRefGreen1 = 782;
+
+static  int iAIdistSensorXRefGreen = 740;
+static  int iAIdistSensorYRefGreen = 780;
+
 
 static long ClosestToeggeliIndex = 0;
 static long ClosestWandIndex = 0;
@@ -164,8 +170,8 @@ void setup() {
 
   //mainState = INIT;
   //mainState = FIND_YELLOW_WALL_ENTRY;
-  mainState = FIND_YELLOW_WALL_ENTRY;
- //mainState = DRIVE_AND_COLLECT_DISTANCE_INIT;
+ // mainState = FIND_YELLOW_WALL_ENTRY;
+ mainState = TURN_TO_WALL;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
 
@@ -302,6 +308,7 @@ void loop() {
 
      }
         break;
+        
     case FIND_YELLOW_WALL_ENTRY:{
       Serial.println(" FIND_YELLOW_WALL_ENTRY ");
       myBuerstenmotor.stopp();
@@ -385,75 +392,7 @@ void loop() {
           mainState = UNLOAD_YELLOW;    
           }
       }       
-    break;
-
-
-
-    case DRIVE_TO_MIDDLE:
-      Serial.println(" DRIVE_TO_MIDDLE ");
-      //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-      //sortiereToeggel();
-      if(1 == fahreAblauf(ulArrayDriveCollect2)){ 
-        mainState = FIND_TOP;
-       }  
-      break;
-      
-    case FIND_TOP:
-      Serial.println(" FIND_TOP ");
-      //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-     // sortiereToeggel();
-      {
-         myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 360);
-        //PotiDistanzmesser abfragen
-        int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
-        int iAIdistSensorY = analogRead(AnalogPinPotiY);  //Read analog in Value Y Axis
-
-        float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
-        float fVoltageY = (float)iAIdistSensorY * 0.0048828125f;
-
-        Serial.print("X Axis Raw value ");
-        Serial.print(iAIdistSensorX);      //Print raw analog value
-        Serial.print("    Voltage:  ");
-        Serial.print(fVoltageX);
-        Serial.print("V");
-
-        Serial.print("     Y Axis Raw value ");
-        Serial.print(iAIdistSensorY);      //Print raw analog value
-        Serial.print("    Voltage:  ");
-        Serial.print(fVoltageY);
-        Serial.println  ("V");
-        
-        if((iAIdistSensorX >= (iAIdistSensorXRef-5)) &&(iAIdistSensorX <= (iAIdistSensorXRef+5))  
-          &&  (iAIdistSensorY >= (iAIdistSensorYRef-5)) && (iAIdistSensorY <= (iAIdistSensorYRef+5))){
-          myFahrwerk.stopp();
-          Serial.println  ("GGG EEEEE FFFF UUU NNN DDD EEE NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
-          
-          mainState = DRIVE_TO_TOP;    
-          }
-      } 
-        break;
-
-
-
-    case DRIVE_TO_TOP:
-        myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
-         //Wenn zu nahe an Wand, dann abdrehen
-        if((myToeggeliDistanz.getAktuelleDistanzCm()) < 10  ){ 
-          myFahrwerk.stopp();
-          mainState = DRIVE_TO_YELLOW;
-        }
-        
-      break;
-  
-     case DRIVE_TO_YELLOW:
-        Serial.println(" DRIVE_TO_YELLOW ");
-        myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-        sortiereToeggel();
-        if(1 == fahreAblauf(ulArrayUnloadYellow)){     
-          mainState = UNLOAD_YELLOW;
-        }          
-        break;
-     
+    break;   
      
      case UNLOAD_YELLOW:
         Serial.println(" UNLOAD_YELLOW ");
@@ -461,60 +400,20 @@ void loop() {
         //sortiereToeggel();
         //Fahren bis Endschalter auslösen
         if(1 == abladen(116)){
-           mainState = END;       
+           mainState = TURN_TO_WALL;       
         }
         break;
 
-     case DRIVE_TO_GREEN:
-        Serial.println(" DRIVE_TO_GREEN");
-        //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
-        //sortiere
-        //sortiereToeggel();
-        if(1 == fahreAblauf(ulArrayUnloadGreen)){            
-         // mainState = FIND_GREEN_WALL_ENTRY;
-         mainState = UNLOAD_GREEN;
-        }
-        break;      
-     break;
 
-    case FIND_GREEN_WALL_ENTRY:{
-      Serial.println(" FIND_GREEN_WALL_ENTRY ");
-      myBuerstenmotor.stopp();
-      myWandFarbsensor.init(Serial,1); //ab jetzt ist nur noch RGB Sensor für Wanderkennung aktiv
-      myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
-      mainState = FIND_GREEN_WALL;
-    }
-    break;
-
-    case FIND_GREEN_WALL:{
-      Serial.println(" FIND_GREEN_WALL "); 
-      driveAlongWall();     
-     static uint16_t uiLastWandColor = 0;
-      uint16_t uiWandColor = 0;
-      if(uiLastWandColor == 0){
-        uiLastWandColor = myWandFarbsensor.getClearValue(&ulISRcolorMeasureCounterInSec);
-        }
-      driveAlongWall();
-      uiWandColor = myWandFarbsensor.getClearValue(&ulISRcolorMeasureCounterInSec);
-      Serial.print(" uiWandColor: "); Serial.println(uiWandColor);
-      //Erkennen ob erst grüne, dann farblose Wand erkannt wurde
-      if(( uiLastWandColor <= 900) && (uiWandColor >920)){
-          //mainState = TURN_TO_GREEN;
-          mainState = END;
-        }
-      uiLastWandColor = uiWandColor;
-    }
-    break;
-
-    case TURN_TO_GREEN:
-      Serial.println(" TURN_TO_GREEN "); 
+    case TURN_TO_WALL:
+      Serial.println(" TURN_TO_WALL "); 
       {
-         myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 360);
+         myFahrwerk.lenkeRechts(SPEED_GANZLANGSAM, 360);
         //PotiDistanzmesser abfragen
         int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
         int iAIdistSensorY = analogRead(AnalogPinPotiY);  //Read analog in Value Y Axis
 
-        float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
+      /*  float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
         float fVoltageY = (float)iAIdistSensorY * 0.0048828125f;
 
         Serial.print("X Axis Raw value ");
@@ -527,17 +426,97 @@ void loop() {
         Serial.print(iAIdistSensorY);      //Print raw analog value
         Serial.print("    Voltage:  ");
         Serial.print(fVoltageY);
-        Serial.println  ("V");
+        Serial.println  ("V");*/
+        
+        if((iAIdistSensorX >= (iAIdistSensorXRefWall-5)) &&(iAIdistSensorX <= (iAIdistSensorXRefWall+5))  
+          &&  (iAIdistSensorY >= (iAIdistSensorYRefWall-5)) && (iAIdistSensorY <= (iAIdistSensorYRefWall+5))){
+          myFahrwerk.stopp();
+          myFahrwerk.fahrRueckwaerts(SPEED_GANZLANGSAM);
+          mainState = FIND_GREEN_WALL_ENTRY;    
+          }
+      }       
+    break;
+
+    case FIND_GREEN_WALL_ENTRY:{
+      Serial.println(" FIND_GREEN_WALL_ENTRY ");
+      myBuerstenmotor.stopp();
+      myWandFarbsensor.init(Serial,1); //ab jetzt ist nur noch RGB Sensor für Wanderkennung aktiv
+      myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
+      mainState = DRIVE_TO_GREEN_WALL_POTI1;
+    }
+    break;
+
+
+    case DRIVE_TO_GREEN_WALL_POTI1:
+      Serial.println(" DRIVE_TO_YELLOW_WALL_POTI1 ");
+      //myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
+     // sortiereToeggel();
+           driveAlongWall();
+      {
+ 
+        //PotiDistanzmesser abfragen
+        int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
+        int iAIdistSensorY = analogRead(AnalogPinPotiY);  //Read analog in Value Y Axis
+
+       /* float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
+        float fVoltageY = (float)iAIdistSensorY * 0.0048828125f;
+
+        Serial.print("X Axis Raw value ");
+        Serial.print(iAIdistSensorX);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageX);
+        Serial.print("V");
+
+        Serial.print("     Y Axis Raw value ");
+        Serial.print(iAIdistSensorY);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageY);
+        Serial.println  ("V");*/
+        
+        if((iAIdistSensorX >= (iAIdistSensorXRefGreen1-2)) &&(iAIdistSensorX <= (iAIdistSensorXRefGreen1+2))  
+          &&  (iAIdistSensorY >= (iAIdistSensorYRefGreen1-2)) && (iAIdistSensorY <= (iAIdistSensorYRefGreen1+2))){
+          myFahrwerk.stopp();
+          Serial.println  ("GGG EEEEE FFFF UUU NNN DDD EEE NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
+          
+          mainState = TURN_TO_GREEN;    
+          }
+      } 
+        break;
+        
+     case TURN_TO_GREEN:
+      Serial.println(" TURN_TO_GREEN "); 
+      {
+         myFahrwerk.lenkeLinks(SPEED_GANZLANGSAM, 360);
+        //PotiDistanzmesser abfragen
+        int iAIdistSensorX = analogRead(AnalogPinPotiX);  //Read analog in Value X Axis
+        int iAIdistSensorY = analogRead(AnalogPinPotiY);  //Read analog in Value Y Axis
+
+       /* float fVoltageX = (float)iAIdistSensorX * 0.0048828125f;
+        float fVoltageY = (float)iAIdistSensorY * 0.0048828125f;
+
+        Serial.print("X Axis Raw value ");
+        Serial.print(iAIdistSensorX);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageX);
+        Serial.print("V");
+
+        Serial.print("     Y Axis Raw value ");
+        Serial.print(iAIdistSensorY);      //Print raw analog value
+        Serial.print("    Voltage:  ");
+        Serial.print(fVoltageY);
+        Serial.println  ("V");*/
         
         if((iAIdistSensorX >= (iAIdistSensorXRefGreen-5)) &&(iAIdistSensorX <= (iAIdistSensorXRefGreen+5))  
           &&  (iAIdistSensorY >= (iAIdistSensorYRefGreen-5)) && (iAIdistSensorY <= (iAIdistSensorYRefGreen+5))){
           myFahrwerk.stopp();
-          Serial.println  ("G RRR UUUUUUEEEEEEEEEE NNNN Winkel gggg eeee fffff uuuuu nnnnn den");
+          Serial.println  ("GGGG EEEEE LLLLLL BBB Winkel gggg eeee fffff uuuuu nnnnn den");
           myFahrwerk.fahrRueckwaerts(SPEED_GANZLANGSAM);
           mainState = UNLOAD_GREEN;    
           }
       }       
     break;
+
+
         
      case UNLOAD_GREEN:
         Serial.println(" UNLOAD_GREEN");
