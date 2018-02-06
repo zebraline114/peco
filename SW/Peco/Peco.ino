@@ -53,7 +53,7 @@ static unsigned long ulISRDriveCounterInSec = 0; /* Laufvariable für Zeit währ
 static unsigned long ulISRcolorMeasureCounterInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
 static unsigned long ulISRcolorMeasureCounterWallColorInSec; /* Laufvariable für Zeit zum Messresultat vom RGB Sensor abholen */
 static unsigned long ulISR50ms = 0; /*Laufvariable für Stopps von Motoren zu Richungswechseln*/
-static unsigned long ulISRCollectTimeCounterInSec = 180; /* Laufvariable für Zeit während Fahren in Sekunden */
+static unsigned long ulISRCollectTimeCounterInSec = 200; /* Laufvariable für Zeit während Fahren in Sekunden */
 static boolean bRunning = false; /*Wird abhängig vom OnOffTaster getoggelt*/
 static unsigned int uiActPosLadeServo = 70;
 static  int iAIdistSensorXRef = 350;
