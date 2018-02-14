@@ -64,10 +64,10 @@ static  int iAIdistSensorXRefYellow = 763;
 static  int iAIdistSensorYRefYellow = 768;
 static  int iAIdistSensorXRefWall = 759;
 static  int iAIdistSensorYRefWall = 760;
-static  int iAIdistSensorXRefGreen1 = 761;
+static  int iAIdistSensorXRefGreen1 = 756;
 static  int iAIdistSensorYRefGreen1 = 782;
 
-static  int iAIdistSensorXRefGreen = 740;
+static  int iAIdistSensorXRefGreen = 746;
 static  int iAIdistSensorYRefGreen = 780;
 
 
@@ -170,7 +170,7 @@ void setup() {
 
   mainState = INIT;
   //mainState = FIND_YELLOW_WALL_ENTRY;
- // mainState = FIND_YELLOW_WALL_ENTRY;
+  //mainState = FIND_YELLOW_WALL_ENTRY;
  //mainState = TURN_TO_WALL;
   ulISRDriveCounterInSec = 0;
   pinMode(13, OUTPUT);
