@@ -84,7 +84,7 @@ static Servo mySortierServoMotor; /*Servomotor für die Sortierwippe*/
 static Servo myLadeklappeServoMotor; /*Servomotor für Ladeklappe*/
 static WandDistanz myWandDistanz;
 static ToeggeliDistanz myToeggeliDistanz;
-static Farbsensor myFarbsensor(300, 1400);
+static Farbsensor myFarbsensor(300, 1300);
 static Farbsensor myWandFarbsensor(300, 3000);
 static Taster myOnOffTaster;
 static Taster myEndTasterRechts;
@@ -804,7 +804,7 @@ unsigned int fahreAblaufAufDistanz(uint8_t p_arrayFahrablauf[][20], unsigned int
 void sortiereToeggel(void){
     static unsigned int uiColor = 0;
     static unsigned int uiOldColor = 0;
-    unsigned long ulDelay = 550; 
+    unsigned long ulDelay = 750; 
     static unsigned long ulDelayCounter = 0;
 
     if((millis()-ulDelayCounter) > ulDelay){ //nur alle 500ms neue Werte abholen um Zeit von Erkennung zum Servo zu verlängern
