@@ -70,6 +70,8 @@ unsigned int Farbsensor::getColor(unsigned long* p_pulISRcolorMeasureCounterInSe
 	printer->print((int)r, HEX); printer->print((int)g, HEX); printer->print((int)b, HEX);
 	printer->println();
 	
+	
+	
 	/* Zur unterscheidung der Farben habe ich den Clear Wert verwendet, weil die Ergebnisse sehr leicht zu 
 	   unterscheiden sind. Ohne Töggle war der Wert um die 70-200 je nach Lichtverhältnisse. Mit dem grünen Töggel
 	   varierte der Wert von 300-3000 (abhängig vom Abstand) und mit dem gelben Töggel bewegte sich der Wert

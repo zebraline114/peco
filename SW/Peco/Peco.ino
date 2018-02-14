@@ -84,7 +84,7 @@ static Servo mySortierServoMotor; /*Servomotor für die Sortierwippe*/
 static Servo myLadeklappeServoMotor; /*Servomotor für Ladeklappe*/
 static WandDistanz myWandDistanz;
 static ToeggeliDistanz myToeggeliDistanz;
-static Farbsensor myFarbsensor(300, 3000);
+static Farbsensor myFarbsensor(300, 1400);
 static Farbsensor myWandFarbsensor(300, 3000);
 static Taster myOnOffTaster;
 static Taster myEndTasterRechts;
@@ -312,7 +312,6 @@ void loop() {
       Serial.println(" FIND_YELLOW_WALL_ENTRY ");
       myBuerstenmotor.fahrVorwaerts(SPEED_VOLLGAS);
       sortiereToeggel();  
-      myWandFarbsensor.init(Serial,1); //ab jetzt ist nur noch RGB Sensor für Wanderkennung aktiv
       myFahrwerk.fahrVorwaerts(SPEED_GANZLANGSAM);
       mainState = DRIVE_TO_YELLOW_WALL_POTI1;
     }
