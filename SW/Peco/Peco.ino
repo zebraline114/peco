@@ -46,6 +46,11 @@ const int AnalogPinPotiY=4;
 #define SPEED_LANGSAM  63
 #define SPEED_GANZLANGSAM  50
 
+//===============
+#define SORTIERSERVO_GRUEN 50
+#define SORTIERSERVO_GELB 25
+
+
 static int iDoItOnlyOnce = 0; /*Temporäre Hilfsvariable für Entwicklunszwecke*/
 static enum eMainStates mainState; /* Laufvariable für Statemachine */
 static enum eRichtungen richtung; /* Richtungen zum fahren */
@@ -84,7 +89,7 @@ static Servo mySortierServoMotor; /*Servomotor für die Sortierwippe*/
 static Servo myLadeklappeServoMotor; /*Servomotor für Ladeklappe*/
 static WandDistanz myWandDistanz;
 static ToeggeliDistanz myToeggeliDistanz;
-static Farbsensor myFarbsensor(300, 1300);
+static Farbsensor myFarbsensor(300, 1500);
 static Farbsensor myWandFarbsensor(300, 3000);
 static Taster myOnOffTaster;
 static Taster myEndTasterRechts;
@@ -165,7 +170,7 @@ void setup() {
   mySuchServoMotor.write(0); // SuchMotor sauber initialisiern, sonst ist Ausgansposition nicht klar
   myLadeklappeServoMotor.write(uiActPosLadeServo);
   delay(100); //Warten bis Servomotor auf Startposition ist, Motor braucht etwas Zeit.
-  mySortierServoMotor.write(0);
+  mySortierServoMotor.write(SORTIERSERVO_GELB);
   delay (500); //Warten bis Servomotor auf Startposition 0 ist, Motor braucht etwas Zeit.
 
   mainState = INIT;
@@ -816,12 +821,12 @@ void sortiereToeggel(void){
             // Wenn kein Toeggel erkannt wurde, lass alles so wie es ist
             break;
           case 1:
-            mySortierServoMotor.write(0); // Wenn gruener Toeggel erkannt wurde, stelle Servomotor auf 0°
+            mySortierServoMotor.write(SORTIERSERVO_GRUEN); // Wenn gruener Toeggel erkannt wurde, stelle Servomotor auf 0°
             Serial.print(" Servo Motor auf gruen : ");
             //delay(500);
             break;
           case 2:
-            mySortierServoMotor.write(25); // Wenn gelber Toeggel erkannt wurde, stelle Servomotor auf 25°
+            mySortierServoMotor.write(SORTIERSERVO_GELB); // Wenn gelber Toeggel erkannt wurde, stelle Servomotor auf 25°
             Serial.print(" Servo Motor auf GELB : ");
             //delay(500);
           break;
