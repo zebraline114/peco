@@ -804,7 +804,7 @@ unsigned int fahreAblaufAufDistanz(uint8_t p_arrayFahrablauf[][20], unsigned int
 void sortiereToeggel(void){
     static unsigned int uiColor = 0;
     static unsigned int uiOldColor = 0;
-    unsigned long ulDelay = 750; 
+    unsigned long ulDelay = 550; 
     static unsigned long ulDelayCounter = 0;
 
     if((millis()-ulDelayCounter) > ulDelay){ //nur alle 500ms neue Werte abholen um Zeit von Erkennung zum Servo zu verlängern
